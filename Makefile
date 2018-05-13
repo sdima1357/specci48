@@ -86,8 +86,7 @@ Middlewares/Third_Party/FatFs/src/ff.c \
 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.c \
 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c \
 Middlewares/Third_Party/FatFs/src/diskio.c \
-Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c \
-Src/user_diskio.c
+Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c 
 
 # ASM sources
 ASM_SOURCES =  \

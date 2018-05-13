@@ -55,7 +55,6 @@
 
 #include "ff.h"
 #include "ff_gen_drv.h"
-#include "user_diskio.h" /* defines USER_Driver as external */
 
 /* USER CODE BEGIN Includes */
 

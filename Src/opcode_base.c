@@ -692,6 +692,7 @@ break;
 /*HALT*/
 case 0x76:
 	HALT();
+	PC--;
 	T_WAIT_UNTIL(4);
 break;
 /*LD (HL), A*/
@@ -1570,8 +1571,8 @@ break;
 /*EI*/
 case 0xfb:
 	EI();
-	interrupts_enabled_at = tstates;
 	T_WAIT_UNTIL(4);
+	interrupts_enabled_at = tstates+4;
 break;
 /*CALL M, @*/
 case 0xfc:

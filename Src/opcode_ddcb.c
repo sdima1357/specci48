@@ -1,4 +1,3 @@
-#define EMPTY ;
 /*LD B, RLC (IX+$)*/
 //~ void opcode_ddcb(u8 opcode)
 {

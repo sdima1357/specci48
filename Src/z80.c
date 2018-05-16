@@ -94,12 +94,15 @@ void z80_reset( int hard_reset )
   
 	return;
 }
-u16 i;
+//~ u16 i;
+#define EMPTY ;
 
 void z80_run(void)
 {
 u8 temp8;
 u16 temp16;
+
+u8 opcode;
 
 u16 exx_temp;
 u32 add_temp;
@@ -116,67 +119,64 @@ u8 lookup;
 
 u8 n;
 u16 nn;
-u8 opcode;
-u8 prefix;
 
-u16 m_cycle = 0;
-	if ((screen_IRQ==1)&&(IFF1==1)&&((tstates - interrupts_enabled_at)>4))
+
+	if ((screen_IRQ==1)&&(IFF1==1)&&(tstates > interrupts_enabled_at))
 	{
 		if(IM==1||IM==0)
 		{
 			IFF1=0;
 			IFF2=1;
-			RST(0x38);
+			if(halt)
+			{
+				PC++;
+				halt = 0;
+			}
 			screen_IRQ=0;
-			halt=0;
+			RST(0x38);
+			
 			//~ tstates+=m_cycle;
 		}
 		else	if(IM==2)
 		{
 			IFF1=0;
 			IFF2=1;
-			uint16_t addr = (((uint16_t)I)<<8)|0xfe;
+			uint16_t addr = (((uint16_t)I)<<8)|0xff;
 			uint16_t jmp_addr=peek16(addr);
 			//~ printf("addr = %4x %4x\n",addr,jmp_addr);
-			RST(jmp_addr);
+			if(halt)
+			{
+				PC++;
+				halt = 0;
+			}
 			screen_IRQ=0;
-			halt=0;
+			RST(jmp_addr);
 			//~ tstates+=m_cycle;
 		}
 		return;	
 	}
-	
-	if (halt==0)
-	{
-	
-	prefix =0;
+//~ CONT:	
+	//~ if (halt==0)
+u16 m_cycle = 0;
+u8   prefix     = 0;	
 	opcode=NEXT_BYTE;
 	R++;
 #include "opcode_base.c"
-	//~ opcode_base(opcode);
-	//~ (*opcode_base[opcode])();
-
 	if (prefix==0xCB)
 	{
 		opcode=NEXT_BYTE;
 		R++;
 #include "opcode_cb.c"
-		//~ opcode_cb(opcode);
-		//~ (*opcode_cb[opcode])();
-		prefix=0;
-		m_cycle+=4;
+		m_cycle+=4+4;
 	}
-	if (prefix==0xED)
+	else if (prefix==0xED)
 	{
 		opcode=NEXT_BYTE;
 		R++;
 #include "opcode_ed.c"
-		//~ opcode_ed(opcode);
-		//~ (*opcode_ed[opcode])();
-		prefix=0;
 		m_cycle+=4;
 	}
-	if (prefix==0xDD ||  prefix==0xFD)
+	else if (prefix==0xDD ||  prefix==0xFD)
 	{
 		if(prefix==0xFD)
 		{
@@ -193,17 +193,12 @@ u16 m_cycle = 0;
 			MEMPTR=(IX+d.s);
 			temp8=READ_BYTE(IX+d.s);
 #include "opcode_ddcb.c"
-			//~ opcode_ddcb(opcode);
-			//~ (*opcode_ddcb[opcode])();
 			WRITE_BYTE(IX+d.s, temp8);
-			//~ T_WAIT_UNTIL(19);
 			m_cycle+=4+19;
 		}
 		else
 		{
-			//~ (*opcode_dd[opcode])();
 #include "opcode_dd.c"
-			//~ opcode_dd(opcode);
 			m_cycle+=4;
 		}
 		if(prefix==0xFD)
@@ -212,12 +207,6 @@ u16 m_cycle = 0;
 			IX = IY;
 			IY = tempR;
 		}
-		prefix=0;
-	}
-	}
-	else
-	{
-		m_cycle+=4;
 	}
 	tstates+=m_cycle;
 }

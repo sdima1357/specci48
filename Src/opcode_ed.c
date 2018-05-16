@@ -26,16 +26,34 @@ case 0x43:
 break;
 /*NEG*/
 case 0x44:
+case 0x4c:
+case 0x54:
+case 0x5c:
+case 0x64:
+case 0x6c:
+case 0x74:
+case 0x7c:		/* NEG */
+
 	NEG();
 	T_WAIT_UNTIL(4);
 break;
 /*RETN*/
 case 0x45:
+case 0x4d:
+case 0x55:
+case 0x5d:
+case 0x65:
+case 0x6d:
+case 0x75:
+case 0x7d:		/* RETN */
 	RETN();
 	T_WAIT_UNTIL(10);
 break;
 /*IM 0*/
 case 0x46:
+case 0x4e:
+case 0x66:
+case 0x6e:		/* IM 0 */
 	IM_MODE(0);
 	T_WAIT_UNTIL(4);
 break;
@@ -66,21 +84,6 @@ case 0x4b:
 	LD_RP_FROM_ADDR_MPTR_16(BC, temp16, nn);
 	T_WAIT_UNTIL(16);
 break;
-/*NEG*/
-case 0x4c:
-	NEG();
-	T_WAIT_UNTIL(4);
-break;
-/*RETI*/
-case 0x4d:
-	RETI();
-	T_WAIT_UNTIL(10);
-break;
-/*IM 0*/
-case 0x4e:
-	IM_MODE(0);
-	T_WAIT_UNTIL(4);
-break;
 /*LD R, A*/
 case 0x4f:
 	LD_R_A();
@@ -108,18 +111,9 @@ case 0x53:
 	WRITE_WORD(nn, temp16);
 	T_WAIT_UNTIL(16);
 break;
-/*NEG*/
-case 0x54:
-	NEG();
-	T_WAIT_UNTIL(4);
-break;
-/*RETN*/
-case 0x55:
-	RETN();
-	T_WAIT_UNTIL(10);
-break;
 /*IM 1*/
 case 0x56:
+case 0x76:
 	IM_MODE(1);
 	T_WAIT_UNTIL(4);
 break;
@@ -150,18 +144,9 @@ case 0x5b:
 	LD_RP_FROM_ADDR_MPTR_16(DE, temp16, nn);
 	T_WAIT_UNTIL(16);
 break;
-/*NEG*/
-case 0x5c:
-	NEG();
-	T_WAIT_UNTIL(4);
-break;
-/*RETI*/
-case 0x5d:
-	RETI();
-	T_WAIT_UNTIL(10);
-break;
 /*IM 2*/
 case 0x5e:
+case 0x7e:
 	IM_MODE(2);
 	T_WAIT_UNTIL(4);
 break;
@@ -192,21 +177,6 @@ case 0x63:
 	WRITE_WORD(nn, temp16);
 	T_WAIT_UNTIL(16);
 break;
-/*NEG*/
-case 0x64:
-	NEG();
-	T_WAIT_UNTIL(4);
-break;
-/*RETN*/
-case 0x65:
-	RETN();
-	T_WAIT_UNTIL(10);
-break;
-/*IM 0*/
-case 0x66:
-	IM_MODE(0);
-	T_WAIT_UNTIL(4);
-break;
 /*RRD*/
 case 0x67:
 	RRD();
@@ -233,21 +203,6 @@ case 0x6b:
 	temp16=READ_WORD(nn);
 	LD_RP_FROM_ADDR_MPTR_16(HL, temp16, nn);
 	T_WAIT_UNTIL(16);
-break;
-/*NEG*/
-case 0x6c:
-	NEG();
-	T_WAIT_UNTIL(4);
-break;
-/*RETI*/
-case 0x6d:
-	RETI();
-	T_WAIT_UNTIL(10);
-break;
-/*IM 0*/
-case 0x6e:
-	IM_MODE(0);
-	T_WAIT_UNTIL(4);
 break;
 /*RLD*/
 case 0x6f:
@@ -276,21 +231,6 @@ case 0x73:
 	WRITE_WORD(nn, temp16);
 	T_WAIT_UNTIL(16);
 break;
-/*NEG*/
-case 0x74:
-	NEG();
-	T_WAIT_UNTIL(4);
-break;
-/*RETN*/
-case 0x75:
-	RETN();
-	T_WAIT_UNTIL(10);
-break;
-/*IM 1*/
-case 0x76:
-	IM_MODE(1);
-	T_WAIT_UNTIL(4);
-break;
 /*IN A, (C)*/
 case 0x78:
 	IN(A, BC);
@@ -312,21 +252,6 @@ case 0x7b:
 	temp16=READ_WORD(nn);
 	LD_RP_FROM_ADDR_MPTR_16(SP, temp16, nn);
 	T_WAIT_UNTIL(16);
-break;
-/*NEG*/
-case 0x7c:
-	NEG();
-	T_WAIT_UNTIL(4);
-break;
-/*RETI*/
-case 0x7d:
-	RETI();
-	T_WAIT_UNTIL(10);
-break;
-/*IM 2*/
-case 0x7e:
-	IM_MODE(2);
-	T_WAIT_UNTIL(4);
 break;
 /*LDI*/
 case 0xa0:

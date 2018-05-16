@@ -87,14 +87,14 @@ static void TP_Write(uint8_t value)
 //~ void SD_IO_Init(void);
 
 //Read coordinates of touchscreen press. Position[0] = X, Position[1] = Y
-static const uint32_t TP_def_arr[]=
+static const int32_t TP_def_arr[]=
 {
-	0x38209b00,
-	0xbbcfdf3e,
-	0x43ba7824,
-	0xbb9397b4,
-	0x38ec4af0,
-	0x437b3df1
+	2,
+	-415,
+	24440904,
+	-295,
+	7,
+	16465393
 };
 
 void     TP_init_default()
@@ -104,7 +104,7 @@ void     TP_init_default()
 	{
 		for(X=0;X<3;X++)
 		{
-			TouchCalibration.Transform[Y][X]= *(float*)&TP_def_arr[Y*3+X];
+			TouchCalibration.Transform[Y][X]= TP_def_arr[Y*3+X];
 		}
 	}
 	
@@ -144,7 +144,7 @@ uint8_t TP_Read_Coordinates(int32_t Coordinates[2])
 
 		HAL_GPIO_WritePin(TOUCH_CS_GPIO_Port, TOUCH_CS_Pin, GPIO_PIN_RESET);
 	
-    while((samples > 0)&&(HAL_GPIO_ReadPin(TOUCH1_IRQ_GPIO_Port, TOUCH1_IRQ_Pin) == 0))
+    while((samples > 0)&&(HAL_GPIO_ReadPin(TOUCH_IRQ_GPIO_Port, TOUCH_IRQ_Pin) == 0))
     {			
         TP_Write(CMD_RDY);
 
@@ -160,7 +160,7 @@ uint8_t TP_Read_Coordinates(int32_t Coordinates[2])
 		HAL_GPIO_WritePin(TOUCH_CS_GPIO_Port, TOUCH_CS_Pin, GPIO_PIN_SET);
 
 		
-		if((counted_samples == NO_OF_POSITION_SAMPLES)&&(HAL_GPIO_ReadPin(TOUCH1_IRQ_GPIO_Port, TOUCH1_IRQ_Pin) == 0))
+		if((counted_samples == NO_OF_POSITION_SAMPLES)&&(HAL_GPIO_ReadPin(TOUCH_IRQ_GPIO_Port, TOUCH_IRQ_Pin) == 0))
 		{
 		
 		calculating_x /= counted_samples;
@@ -170,8 +170,8 @@ uint8_t TP_Read_Coordinates(int32_t Coordinates[2])
 		//CONVERTING 16bit Value to Screen coordinates
     // 65535/273 = 240!
 		// 65535/204 = 320!
-		Coordinates[0] = TouchCalibration.Transform[0][0]*calculating_x+TouchCalibration.Transform[0][1]*calculating_y+TouchCalibration.Transform[0][2];
-		Coordinates[1] = TouchCalibration.Transform[1][0]*calculating_x+TouchCalibration.Transform[1][1]*calculating_y+TouchCalibration.Transform[1][2];
+		Coordinates[0] = (TouchCalibration.Transform[0][0]*calculating_x+TouchCalibration.Transform[0][1]*calculating_y+TouchCalibration.Transform[0][2])/65536;
+		Coordinates[1] = (TouchCalibration.Transform[1][0]*calculating_x+TouchCalibration.Transform[1][1]*calculating_y+TouchCalibration.Transform[1][2])/65536;
 		
 		stat = TOUCHPAD_DATA_OK;			
 		}
@@ -203,7 +203,7 @@ uint8_t TP_Read_Coordinates(int32_t Coordinates[2])
 //Check if Touchpad was pressed. Returns TOUCHPAD_PRESSED (1) or TOUCHPAD_NOT_PRESSED (0)
 uint8_t TP_Touchpad_Pressed(void)
 {
-	if(HAL_GPIO_ReadPin(TOUCH1_IRQ_GPIO_Port, TOUCH1_IRQ_Pin) == 0)
+	if(HAL_GPIO_ReadPin(TOUCH_IRQ_GPIO_Port, TOUCH_IRQ_Pin) == 0)
 	{
 		return TOUCHPAD_PRESSED;
 	}

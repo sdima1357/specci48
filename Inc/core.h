@@ -25,6 +25,7 @@ void LCD_setOrientation(uint8_t o);
 void LCD_setAddressWindow(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 void LCD_fillRect(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t color);
 void LCD_fillRect2(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t color,uint16_t seccolor);
+void LCD_FullRect6(uint16_t x1, uint16_t y1,uint8_t * adress,uint8_t * adress1,uint16_t w,uint16_t h);
 void LCD_Draw_Text(const char* Text, int16_t X, int16_t Y, uint16_t Colour, uint16_t Size, uint16_t Background_Colour);
 //~ void LCD_WriteWord(uint16_t x1, uint16_t y1, uint32_t color) ;
 //~ uint32_t LCD_ReadWord(uint16_t x1, uint16_t y1) ;

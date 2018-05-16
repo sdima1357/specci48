@@ -55,8 +55,7 @@ BUILD_DIR = build
 ######################################
 # C sources
 C_SOURCES =  \
-Middlewares/Third_Party/FatFs/src/option/syscall.c \
-Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c \
+OADrivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c \
 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi_ex.c \
 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi.c \
 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c \
@@ -78,7 +77,6 @@ Src/main_ROM.c \
 Src/sd_diskio.c \
 Src/stm32_adafruit_sd.c \
 Src/stm32f1xx_it.c \
-Src/fatfs.c \
 /Src/system_stm32f1xx.c \
 Middlewares/Third_Party/FatFs/src/ff_gen_drv.c \
 Src/stm32f1xx_hal_msp.c \

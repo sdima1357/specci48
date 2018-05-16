@@ -22,8 +22,15 @@ void  SPIx_Error1 (void);
 #include <stdlib.h>
 #include <string.h>
 #include "main_ROM.h"
-uint16_t border;
+extern int32_t checkerror;
+extern int32_t checkdeinit;
+uint16_t 		border;
 extern int32_t tstates;
+extern int32_t interrupts_enabled_at;
+//~ extern u8 	opcode;
+extern u8 	screen_IRQ;
+extern u8 	IM;
+
 //~ void SDCard_Config(void);
 //#define  poke(addr,value) writeByte(addr,value)
 #include "z80.h"
@@ -109,10 +116,52 @@ u16 peek16(u16 addr)
 
 u8 in(u16 port)
 {
-	u8 input;
+	u8 input=0xff;
 	if ((port&0x00FF)==0xFE)//перехват порта 0xFE
 	{
-		
+		uint16_t res =((KEYB_0_GPIO_Port->IDR>>3)&0b1111111);
+		if(!(port&(1<<11)))
+		{
+			if(!(res&0x4))
+			{
+				input &= ~(1u<<4);
+			}
+		}
+		if(!(port&(1<<12)))
+		{
+			if(!(res&0x1))
+			{
+				input &= ~(1u<<4);
+			}
+			if(!(res&0x10))
+			{
+				input &= ~(1u<<3);
+			}
+			if(!(res&0x8))
+			{
+				input &= ~(1u<<2);
+			}
+			if(!(res&0x40))
+			{
+				input &= ~(1u<<1);
+			}
+			if(!(res&0x20))
+			{
+				input &= ~(1u<<0);
+			}
+		}
+		if(!(port&(1<<15)))
+		{
+				if(!(res&0x2)) //space
+				{
+					input &= ~(1u<<0);
+				}
+		}
+		//~ if(res&0x4==0)	// left 5
+		//~ if(res&0x8==0)	// rigth 8
+		//~ if(res&0x10==0)	// up  7
+		//~ if(res&0x1==0)	// down 6
+		//~ if(res&0x20==0)	// zero  0
 #ifdef IN_OUT	
 		GPIOC->ODR&=0x00FF;
 		GPIOC->ODR|=port&0xFF00;
@@ -172,96 +221,7 @@ void SystemClock_Config(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-FATFS SD_FatFs;  /* File system object for SD card logical drive */
-char SD_Path[4]; /* SD card logical drive path */
 
-#if 0
-#define ADDR_FLASH_PAGE_63    ((uint32_t)0x0800FC00) /* Base @ of Page 63, 1 Kbytes */
-#define ADDR_FLASH_PAGE_64    ((uint32_t)0x08010000) /* Base @ of Page 64, 1 Kbytes */
-
-//~ char* pDirectoryFiles[MAX_BMP_FILES];
-/* USER CODE END PV */
-
-
-int erase_Flash()
-{
-  FLASH_EraseInitTypeDef EraseInitStruct;
-  uint32_t PAGEError = 0;
-  EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
-  EraseInitStruct.PageAddress = ADDR_FLASH_PAGE_63;
-  EraseInitStruct.NbPages     = 1;//(FLASH_USER_END_ADDR - FLASH_USER_START_ADDR) / FLASH_PAGE_SIZE;
-  if (HAL_FLASHEx_Erase(&EraseInitStruct, &PAGEError) == HAL_OK)
-  {
-	return 1;  
-  }
-   return 0;
-}
-
-int  write_Flash(uint32_t Address,uint32_t data)
-{
-	if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, Address, data) == HAL_OK)
-	{
-		return 1;
-	}
-	return 0;
-     //~ HAL_FLASH_Unlock();
-     //~ __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGSERR );
-     //~ FLASH_Erase_Sector(FLASH_SECTOR_6, VOLTAGE_RANGE_3);
-     //~ HAL_FLASH_Program(TYPEPROGRAM_WORD, FlashAddress, data);
-     //~ HAL_FLASH_Lock();
-}
-char* MontTable[] =
-{
-	"JANUARY",
-	"FEBRUARY",
-	"MARCH",
-	"APRIL",
-	"MAY", 
-	"JUNE",
-	"JULY", 
-	"AUGUST",
-	"SEPTEMBER",
-	"OCTOBER", 
-	"NOVEMBER",
-	"DECEMBER"
-};
-static uint8_t RTC_ByteToBcd2(uint8_t Value)
-{
-  uint32_t bcdhigh = 0U;
-  
-  while(Value >= 10U)
-  {
-    bcdhigh++;
-    Value -= 10U;
-  }
-  
-  return  ((uint8_t)(bcdhigh << 4U) | Value);
-}
-
-/**
-  * @brief  Converts from 2 digit BCD to Binary.
-  * @param  Value: BCD value to be converted
-  * @retval Converted word
-  */
-static uint8_t RTC_Bcd2ToByte(uint8_t Value)
-{
-  uint32_t tmp = 0U;
-  tmp = ((uint8_t)(Value & (uint8_t)0xF0) >> (uint8_t)0x4) * 10U;
-  return (tmp + (Value & (uint8_t)0x0F));
-}
-
-
-char* getMontString(uint8_t num)
-{
-	return MontTable[RTC_Bcd2ToByte(num)-1];
-}
-//~ int strlen(char* pnt)
-//~ {
-	//~ int n=0;
-	//~ while(*pnt++) n++;
-	//~ return n;
-//~ }
-#endif
 char * printNum(int32_t num)
 {
 	static char buffer[0x20];
@@ -290,6 +250,7 @@ char * printNum(int32_t num)
 	}
 	return  pbuff;
 }
+
 char * printNumU(uint64_t num)
 {
 	static char buffer[0x20];
@@ -309,25 +270,7 @@ char * printNumU(uint64_t num)
 	}
 	return  pbuff;
 }
-//~ char * printNum(int32_t num)
-//~ {
-    //~ static char buffer[0x10];
-    //~ char* pbuff = &buffer[0x10-1];
-    //~ *pbuff = 0;	
-    //~ pbuff--;
-    //~ *pbuff = '0';
-    //~ if(num)
-    //~ {	    
-	    //~ while(num)
-	    //~ {
-		//~ *pbuff = (num%10)+'0';    
-		//~ num/=10;
-		//~ pbuff--;    
-	    //~ }
-	    //~ pbuff++;   
-    //~ }
-    //~ return  pbuff;
-//~ }
+
 char * printNum16(uint32_t num)
 {
     static char buffer[0x10];
@@ -369,6 +312,7 @@ char * printNum16_2(uint32_t num)
 //~ #if 0
 uint8_t TP_Read_Coordinates(int32_t Coordinates[2]);
 uint8_t TP_Touchpad_Pressed(void);
+
 void paintCross(int32_t x,int32_t y,int32_t size,int32_t color)
 {
 	LCD_fillRect(x,y-size/2,1,size,color);
@@ -378,395 +322,8 @@ void clearFullScreen()
 {
 	LCD_fillRect(0,0,LCD_getWidth(),LCD_getHeight(),BLACK);	
 }
-#if 0
-inline FLOAT det3  (	
-			FLOAT a,FLOAT b,FLOAT c,
-			FLOAT d,FLOAT e,FLOAT f,
-			FLOAT g,FLOAT h,FLOAT i
-			)
-{
-	return a*e*i +b*f*g+ c*d*h - a*f*h - b*d*i - c*e*g;
-}
-
-inline FLOAT mat3x3Invert(FLOAT *p,FLOAT* ff)
-{
-		const  FLOAT  b11= (p[0]);	
-		const  FLOAT  b12 =(p[1]);	
-		const  FLOAT  b13 =(p[2]);
-		const  FLOAT  b21 =(p[3]);	
-		const  FLOAT  b22 =(p[4]);	
-		const  FLOAT  b23 =(p[5]);	
-		const  FLOAT  b31 =(p[6]);	
-		const  FLOAT  b32 =(p[7]);	
-		const  FLOAT  b33 =(p[8]);	
-		ff[0*3+0] = (b22*b33-b32*b23);ff[0*3+1] = (b13*b32-b33*b12);ff[0*3+2] = (b12*b23-b22*b13);
-		ff[1*3+0] = (b23*b31-b33*b21);ff[1*3+1] = (b11*b33-b31*b13);ff[1*3+2] = (b13*b21-b23*b11);
-		ff[2*3+0] = (b21*b32-b31*b22);ff[2*3+1] = (b12*b31-b32*b11);ff[2*3+2] = (b11*b22-b21*b12);
-		return det3(
-							b11,b12,b13,
-							b21,b22,b23,
-							b31,b32,b33
-						);;
-}	
-
-#define N_MESU 9
-void touchSetting()
-{
-	sTouchCalibration* calib = getCalibr();
-	uint32_t * flashp = (uint32_t *) ADDR_FLASH_PAGE_63;
-	int32_t Coordinates[2];
-	
-	//~ if((flashp[0]!=0xffffffff)&&!force)
-	{
-		uint32_t * rpnt = (uint32_t *)(&calib->Transform[0][0]);
-		int kk =0;
-		for(kk=0;kk<6;kk++)
-		{
-			rpnt[kk] = flashp[kk];
-		}
-	}	
-	Coordinates[0] = 0;
-	Coordinates[1] = 0;
-	
-	Coordinates[0] = -1;
-	LCD_Draw_Text("T me!",LCD_getWidth()/2-2*8*CHAR_WIDTH/2,LCD_getHeight()/2-2*CHAR_HEIGHT/2, GREEN, 2, BLACK);
-	//~ while(Coordinates[0]==-1)
-	{
-		while(!TP_Touchpad_Pressed())
-		{
-			//
-		}
-		TP_Read_Coordinates(Coordinates);
-		//~ LCD_Draw_Text(printNum16(Coordinates[0]),10,140, GREEN, 2, BLACK);
-		//~ LCD_Draw_Text(printNum16(Coordinates[1]),10,140+20, GREEN, 2, BLACK);
-	}
-}
-void reCalibrateTouch(int force)
-{
-FLOAT VTP[3][N_MESU];
-FLOAT RTP[3][N_MESU];
-FLOAT VTP_VTP_T_I[3][3];
-FLOAT RTP_VTP_T[3][3];
-FLOAT VTP_VTP_T[3][3];
-	sTouchCalibration* calib = getCalibr();
-	int32_t Coordinates[2];
-	int32_t i;
-	int32_t j;
-	//~ LCD_fillRect(0,0,LCD_getWidth(),LCD_getHeight(),BLACK);
-	//~ LCD_Draw_Text(printNum(sizeof(float)),30,LCD_getWidth()/4, YELLOW, 4, BLACK);  
-	//~ LCD_Draw_Text(printNum(sizeof(sTouchCalibration)),130,LCD_getWidth()/4, YELLOW, 4, BLACK);  
-	//~ HAL_Delay(20000);
-	//~ if(HAL_RTCEx_BKUPRead(&hrtc,RTC_BKP_DR7)==0x1235)
-	//~ {
-		//~ int kk;
-		//~ uint16_t * rpnt = (uint16_t *) (&calib->Transform[0][0]);
-		//~ for(kk=0;kk<12;kk++)
-		//~ {
-			//~ uint16_t val = HAL_RTCEx_BKUPRead(&hrtc,RTC_BKP_DR8+kk);
-			//~ rpnt[kk] = val;
-			//~ LCD_Draw_Text(printNum16(val),130,LCD_getWidth()/4, YELLOW, 4, BLACK);  
-			//~ HAL_Delay(4000);
-		//~ }
-		
-	//~ }
-	uint32_t * flashp = (uint32_t *) ADDR_FLASH_PAGE_63;
-	
-	if((flashp[0]!=0xffffffff)&&!force)
-	{
-		uint32_t * rpnt = (uint32_t *)(&calib->Transform[0][0]);
-		int kk =0;
-		for(kk=0;kk<6;kk++)
-		{
-			rpnt[kk] = flashp[kk];
-		}
-	}
-	//~ if(HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR1) != 0x32F2||calib->Transform[0][0]==0.0f)
-	else
-	{
-	calib->Transform[0][0] = (FLOAT)1.0;	calib->Transform[0][1] = (FLOAT)0.0;	calib->Transform[0][2] = (FLOAT)0.0;
-	calib->Transform[1][0] = (FLOAT)0.0;	calib->Transform[1][1] = (FLOAT)1.0;	calib->Transform[1][2] = (FLOAT)0.0;
-	
-	int testX[]	={20,(int32_t)(LCD_getWidth())/2,(int32_t)(LCD_getWidth())  -  20};
-	int testY[]	={20,(int32_t)(LCD_getHeight())/2,(int32_t)(LCD_getHeight())  -  20};
-	
-	
-	for(i=0;i<3;i++)
-	{
-		for(j=0;j<3;j++)
-		{
-			clearFullScreen();
-			LCD_Draw_Text("press cross",30,LCD_getWidth()/4, j?YELLOW:RED, 2, BLACK);  
-			int cX = 	testX[i];
-			int cY = 	testY[j];
-			paintCross(cX,cY,13,YELLOW);
-			int ind = i*3+j;
-			RTP[0][ind] = cX;
-			RTP[1][ind] = cY;
-			RTP[2][ind] = (FLOAT)1.0;
-			
-			Coordinates[0] = 0;
-			Coordinates[1] = 0;
-			
-			Coordinates[0] = -1;
-			while(Coordinates[0]==-1)
-			{
-				while(!TP_Touchpad_Pressed())
-				{
-					//
-				}
-				TP_Read_Coordinates(Coordinates);
-				LCD_Draw_Text(printNum16(Coordinates[0]),10,140, GREEN, 2, BLACK);
-				LCD_Draw_Text(printNum16(Coordinates[1]),10,140+20, GREEN, 2, BLACK);
-			}
-			int x0 = Coordinates[0];
-			int y0 = Coordinates[1];
-			VTP[0][ind] = x0;
-			VTP[1][ind] = y0;
-			VTP[2][ind] =  (FLOAT)1.0;
-			paintCross(cX,cY,13,BLACK);
-			//~ LCD_Draw_Text(printNum(x0),10,140, GREEN, 2, BLACK);
-			//~ LCD_Draw_Text(printNum(y0),10,140+20, GREEN, 2, BLACK);
-			
-			HAL_Delay(300);
-		}
-	}
-	//~   RTP=A*VTP;
-	// ~ (RTP*VTP')*INV(VTP*VTP') = A;
-	int X;	
-	int Y;	
-	// RTP*VTP'
-	// 
-        for(Y=0;Y<3;Y++)
-	{
-		for(X=0;X<3;X++)
-		{
-			FLOAT summRVT = (FLOAT)0;
-			FLOAT summVVT = (FLOAT)0;
-			for(i=0;i<N_MESU;i++)
-			{
-				summRVT+=RTP[Y][i]*VTP[X][i];
-				summVVT+=VTP[Y][i]*VTP[X][i];
-			}
-			RTP_VTP_T[Y][X] = summRVT;
-			VTP_VTP_T[Y][X] = summVVT;
-		}
-	} 	
-	
-	// invert VTP_VTP_T
-	FLOAT determinant = mat3x3Invert(&VTP_VTP_T[0][0],&VTP_VTP_T_I[0][0]);
-	FLOAT scale = ((FLOAT)1.0)/determinant;
-	// multiply RTP_VTP_T*VTP_VTP_T_I
-	FLOAT RESULT[3][3];
-        for(Y=0;Y<3;Y++)
-	{
-		for(X=0;X<3;X++)
-		{
-			FLOAT summRVT = (FLOAT)0;
-			for(i=0;i<3;i++)
-			{
-				summRVT+=RTP_VTP_T[Y][i]*VTP_VTP_T_I[i][X];
-			}
-			RESULT[Y][X] = summRVT*scale;
-		}
-	}
-	clearFullScreen();
-	for(Y=0;Y<3;Y++)
-	{
-		for(X=0;X<3;X++)
-		{
-			if(Y<2)
-			{
-				calib->Transform[Y][X] = RESULT[Y][X];
-			}
-			if(X<2)
-			{		
-				//~ LCD_Draw_Text(printNum((int)(RESULT[Y][X]*10000)),10+X*70,Y*30, GREEN, 2, BLACK);
-			}
-			else
-			{
-				//~ LCD_Draw_Text(printNum((int)(RESULT[Y][X])),10+X*70,Y*30, GREEN, 2, BLACK);
-			}				
-		}
-	}
-	//~ HAL_Delay(4000);
-	if(0)
-	{
-		uint32_t * rpnt = (uint32_t *) (&calib->Transform[0][0]);
-		uint32_t flashp = ADDR_FLASH_PAGE_63;
-		int kk =0;
-		HAL_FLASH_Unlock();
-		int res=erase_Flash();
-		for(kk=0;kk<6;kk++)
-		{
-			res = write_Flash(flashp,rpnt[kk]);
-			flashp+=4;
-		}
-		HAL_FLASH_Lock();
-		LCD_Draw_Text(printNum16(res),10,140, GREEN, 2, BLACK);
-			
-	}
-	
-	//~ {
-		//~ int kk;
-		//~ HAL_RTCEx_BKUPWrite(&hrtc,RTC_BKP_DR7,0x1235);
-		//~ uint16_t * rpnt = (uint16_t *) (&calib->Transform[0][0]);
-		//~ for(kk=0;kk<12;kk++)
-		//~ {
-			//~ HAL_RTCEx_BKUPWrite(&hrtc,RTC_BKP_DR8+kk,rpnt[kk]);
-			//~ LCD_Draw_Text(printNum16(rpnt[kk]),130,LCD_getWidth()/4, YELLOW, 4, BLACK);  
-			//~ HAL_Delay(4000);
-		//~ }
-	//~ }
-		#if 0
-		{
-			clearFullScreen();
-			int X,Y;
-			char buff[0x20];
-			LCD_Draw_Text("results:",10,200, GREEN, 2, BLACK);
-			for(Y=0;Y<2;Y++)
-			{
-				for(X=0;X<3;X++)
-				{
-					int sn = 1000*calib->Transform[Y][X];
-					int hn = (sn<0?-sn:sn) / 1000;
-					int ln  = (sn<0?-sn:sn) - hn*1000; 
-					sprintf(buff," %3d.%03d",hn,ln);
-					buff[0] = sn<0?'-':' ';
-					LCD_Draw_Text(buff,10,(Y*3+X)*30, GREEN, 2, BLACK);
-				}
-			}
-		}
-		#endif
-		HAL_Delay(2000);
-	}
-	
-	// test 10 points
-	//~ for(i=0;i<10;i++)
-	//~ {
-		//~ Coordinates[0] = 0;
-		//~ Coordinates[1] = 0;
-		
-		//~ Coordinates[0] = -1;
-		//~ paintCross(100,100,13,BLACK);	
-		//~ while(Coordinates[0]==-1)
-		//~ {
-			//~ while(!TP_Touchpad_Pressed())
-			//~ {
-				//~ //
-			//~ }
-			//~ TP_Read_Coordinates(Coordinates);
-		//~ }
-		//~ clearFullScreen();
-		//~ int x0 = Coordinates[0];
-		//~ int y0 = Coordinates[1];
-		//~ LCD_Draw_Text(printNum(x0),10,140, GREEN, 2, BLACK);
-		//~ LCD_Draw_Text(printNum(y0),10,140+20, GREEN, 2, BLACK);
-		//~ paintCross(x0,y0,13,GREEN);	
-		//~ HAL_Delay(200);
-	//~ }
-	//~ clearFullScreen();
-}
-#endif
-//~ #endif
-// keyboard
-//~ struct sKey;
-#if 0
-struct  sKeys 
-{
-	int16_t x;
-	int16_t y;
-	int16_t w;
-	int16_t h;
-	int16_t scale;
-	int16_t response;
-	int16_t SYMB_color;
-	int16_t ON_color;
-	int16_t OFF_color;
-	char text[10];
-	int16_t state;
-	struct  sKeys *   next;
-	
-} ;
-typedef struct sKeys sKey;
-
-sKey* parent 			= NULL;
-int16_t defSYMB_color  	= YELLOW;
-int16_t defON_color          =  WHITE;
-int16_t defOFF_color         =  BLACK;
-
-sKey ** getLastKey()
-{
-	sKey** curr = &parent;
-	while(*curr)
-	{	
-		curr = &((*curr)->next);
-	}
-	return curr;
-}
-void clearKeys()
-{
-	sKey* curr = parent;
-	while(curr)
-	{
-		sKey* next = curr->next;
-		free(curr);
-		curr = next;
-	}
-	parent = NULL;
-}
-
-void paintKeys()
-{
-	sKey* curr = parent;
-	while(curr)
-	{
-		LCD_Draw_Text(curr->text,curr->x,curr->y, curr->SYMB_color, curr->scale, curr->state?curr->ON_color:curr->OFF_color);
-		curr = curr->next;
-	}
-}
-
-sKey* findKeyPressed(int x,int y)
-{
-	sKey* curr = parent;
-	while(curr)
-	{
-		int tx = x-curr->x;
-		int ty = y-curr->y;
-		if(tx>0&&tx<curr->w&&ty>0&&ty<curr->h)
-		{
-			return curr;
-		}
-		curr = curr->next;
-	}
-	return curr;
-}
-
-void addKey(char* text,int16_t response,int16_t x, int16_t y,int16_t scale)
-{
-	int len  = strlen(text);
-	if(len>9)  return;
-	
-	sKey** last = getLastKey();
-	*last = malloc(sizeof(sKey));
-	sKey* curr = *last;
-	
-	curr->x = x;
-	curr->y = y;
-	curr->scale = scale;
-	curr->response = response;
-	curr->w = len*scale*CHAR_WIDTH;
-	curr->h = scale*CHAR_HEIGHT;
-	curr->SYMB_color = defSYMB_color;
-	curr->ON_color = defON_color;
-	curr->OFF_color = defOFF_color;
-	curr->next = NULL;
-	curr->state =0;
-	strcpy(&curr->text[0],text);
-}
-#endif
-
-#define EXIST 		0x200 
-#define MODIFIED 	0x400 
+#define EXIST 		0x2000 
+#define MODIFIED 	0x4000 
 //~ #define TO_DISPLAY	0x800 
 #define BLOCKS ((0x10000-0x5B00)/64)
 struct block
@@ -777,18 +334,18 @@ struct block
 	//~ uint8_t  flags; // 0x200 - exist mask  0x400 modified by write 	//~ uint8_t  line;  // line - pointer
 }  Blocks[BLOCKS];
 
-#define NUM_LINES (96)
+#define NUM_LINES (100)
 
 struct cacheLinePool
 {
 	uint8_t    cacheLine[64];
 	uint16_t  currentBlockNumber;
-	uint32_t  lastTimeTick;
+	int32_t  lastTimeTick;
 }  Lines[NUM_LINES];
 
-uint32_t  timeTick = 0;
-uint16_t  missSaveMemory = 0;
-uint16_t  missReadMemory = 0;
+int32_t  timeTick = 0;
+int16_t  missSaveMemory = 0;
+int16_t  missReadMemory = 0;
 
 #define N_SCALE 4
 #define WW  (320/N_SCALE)
@@ -801,34 +358,24 @@ uint16_t  missReadMemory = 0;
 #define BX   (8/N_SCALE)
 #define BY  (4/N_SCALE)
 
-int insizeXY(int x,int y)
+inline static int insizeXY(int x,int y)
 {
-	if(x>=LX&&x<LX+SW&&y>=LY&&y<LY+SH)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}		
+	return (x>=LX&&x<LX+SW&&y>=LY&&y<LY+SH);
 }
 
 void initBlocksAndLines()
 {
 	
-	int k=0;
-	//~ int blockX = 0;
-	//~ int blockY = 0;
-	// each block 4x4 pixels
+	uint16_t k=0;
 	// all screen is  320/4*240/4 blocs;
 	// allocated to spessi screen is (256+8)/4*(192)/4
-	int cnt = 0;
+	uint16_t cnt = 0;
 	int y,x,yy,xx;
 	for(y=0;y<HH;y+=BY)
 	{
 		for(x=0;x<WW;x+=BX)
 		{
-			int free = 1;
+			uint16_t free = 1;
 			for(yy=0;yy<BY;yy++)
 			{
 				for(xx=0;xx<BX;xx++)
@@ -839,10 +386,13 @@ void initBlocksAndLines()
 					}
 				}
 			}
-			Blocks[cnt].X = x;
-			Blocks[cnt].Y = y;
-			Blocks[cnt].flag_line = 0; //not exist
-			cnt+= free;
+			if(free)
+			{
+				Blocks[cnt].X = x;
+				Blocks[cnt].Y = y;
+				Blocks[cnt].flag_line = 0; //not exist
+				cnt++;
+			}
 			if(cnt==BLOCKS)
 			{
 				goto  ENOU;
@@ -850,62 +400,15 @@ void initBlocksAndLines()
 		}
 		
 	}
-#if 0
-	int x,y;
-	//~ char rb[0x10];
-	for(y=0;y<240/4;y++)
-	{
-		if(y<(240/4/2-(192)/4/2)||y>=(240/4/2+(192)/4/2))
-		{
-			for(x=0;x<320/4;x++)
-			{
-				Blocks[k].X = x;
-				Blocks[k].Y = y;
-				Blocks[k].flag_line = 0; //not exist
-				k++;
-				if(k==BLOCKS)
-				{
-					goto  ENOU;
-				}
-				//all blocs
-			}
-		}
-		else
-		{
-			for(x=0;x<320/4;x++)
-			{
-				if(x<(320/4/2-(256+8)/4/2)||x>=(320/4/2+(256+8)/4/2))
-				{
-					Blocks[k].X = x;
-					Blocks[k].Y = y;
-					Blocks[k].flag_line = 0; //not exist
-					k++;
-					if(k==BLOCKS)
-					{
-						goto  ENOU;
-					}
-				}
-				//all blocs
-			}
-		}
-		//~ sprintf(rb,"%05d",k);
-		//~ HAL_Delay(100);
-		//~ for(k=0;k<BLOCKS;k++)
-		//~ {
-			// calculate X and Y
-		//~ }	
-	}
-#endif	
 ENOU:
 	
-	LCD_Draw_Text(printNum(cnt),4,LCD_getHeight()/2, YELLOW, 4, BLACK);   
-	HAL_Delay(500);
+	//~ LCD_Draw_Text(printNum(cnt),4,LCD_getHeight()/2, YELLOW, 4, BLACK);   
+	//~ HAL_Delay(500);
 	for(k=0;k<NUM_LINES;k++)
 	{
 		Lines[k].currentBlockNumber = k;
 		Lines[k].lastTimeTick = 0;
-		Blocks[k].flag_line           = EXIST|k;
-		//~ Blocks[k].line             = k;
+		Blocks[k].flag_line           = EXIST | k;
 	}
 }
 
@@ -914,11 +417,11 @@ int  findOldestLine()
 {
 		// find oldest line for commit
 	int   oldestLineIndex = 0;
-	uint32_t timediff       = 0;
+	int32_t timediff       = 0;
 	int k;
 	for(k=0;k<NUM_LINES;k++)
 	{
-		uint32_t diffval = timeTick-Lines[k].lastTimeTick;
+		int32_t diffval = timeTick-Lines[k].lastTimeTick;
 		if(diffval>timediff)
 		{
 			timediff = diffval;
@@ -927,8 +430,6 @@ int  findOldestLine()
 	}
 	return oldestLineIndex;
 }
-//~ void  LCD_Read32bytes(uint16_t x1, uint16_t y1,uint8_t * adress) ;
-//~ void  LCD_Write32bytes(uint16_t x1, uint16_t y1,uint8_t * adress) ;
 
 void writeCache64bIfmodified(uint16_t blockNumber,uint8_t * data)
 {
@@ -938,7 +439,6 @@ void writeCache64bIfmodified(uint16_t blockNumber,uint8_t * data)
 		uint16_t Y = (Blocks[blockNumber].Y)*4;
 		LCD_Write64bytes(X,Y,data);
 		missSaveMemory++;
-		// write lcd block32;
 	}
 	// just clear flags;
 	Blocks[blockNumber].flag_line = 0; 
@@ -951,8 +451,6 @@ void readCache64b(uint16_t blockNumber,uint8_t * data,uint16_t lineNum)
 	LCD_Read64bytes(X,Y,data);
 	missReadMemory++;
 	Blocks[blockNumber].flag_line = EXIST|lineNum; 
-	//~ Blocks[blockNumber].line   = ;
-	// read lcd block32;
 }
 
 
@@ -982,70 +480,28 @@ inline uint8_t readByte(uint16_t adress)
 inline void writeByte(uint16_t adress,uint8_t data)
 {
 	timeTick++;
-	//~ if(adress>=(uint16_t)0x5B00)
-	//~ {
-		uint16_t blockAdress =  (adress-0x5B00)>>6;
-		struct block* bl =        &Blocks[blockAdress];
-		struct cacheLinePool* line = &Lines[bl->flag_line&0x1ff];
-		if(!(bl->flag_line&EXIST))
-		{
-			
-			// find oldest line for commit
-			int oldestLineIndex = findOldestLine();
-			// commit line to extern mem if it touched
-			line = &Lines[oldestLineIndex];
-			writeCache64bIfmodified(line->currentBlockNumber,line->cacheLine);
-			// read right line from extern mem && mark as last read
-			//~ 
-			readCache64b(blockAdress,line->cacheLine,oldestLineIndex);
-			line->currentBlockNumber = blockAdress;
-			// 
-		}
-		else
-		{
-		}
-		line->lastTimeTick = timeTick;
-		line->cacheLine[adress&0x3f] = data;
-		bl->flag_line|=MODIFIED;//|TO_DISPLAY;
-	//~ }
-}
-/*
-int readLine32(uint16_t adress,uint8_t* to)
-{
-	timeTick++;
-	uint16_t blockAdress          =  (adress-0x4000)>>5;
-	struct block* bl                 = &Blocks[blockAdress];
+	uint16_t blockAdress =  (adress-0x5B00)>>6;
+	struct block* bl =        &Blocks[blockAdress];
 	struct cacheLinePool* line = &Lines[bl->flag_line&0x1ff];
 	if(!(bl->flag_line&EXIST))
 	{
+		
+		// find oldest line for commit
 		int oldestLineIndex = findOldestLine();
 		// commit line to extern mem if it touched
 		line = &Lines[oldestLineIndex];
-		writeCache32bIfmodified(line->currentBlockNumber,line->cacheLine);
+		writeCache64bIfmodified(line->currentBlockNumber,line->cacheLine);
 		// read right line from extern mem && mark as last read
 		//~ 
-		readCache32b(blockAdress,line->cacheLine,oldestLineIndex);
+		readCache64b(blockAdress,line->cacheLine,oldestLineIndex);
 		line->currentBlockNumber = blockAdress;
 		// 
-		
 	}
-	//mark as last read
 	line->lastTimeTick = timeTick;
-	int k;
-	int s = bl->flag_line&TO_DISPLAY;
-	bl->flag_line&=~TO_DISPLAY;
-	for(k=0;k<32;k++)
-	{
-		 to[k] = line->cacheLine[k];
-	}
-	return s;
-	//~ return line->cacheLine[adress&0x1f];
+	line->cacheLine[adress&0x3f] = data;
+	bl->flag_line|=MODIFIED;//|TO_DISPLAY;
 }
-*/
 
-
-extern u8 opcode;
-extern u8 screen_IRQ;
 /* USER CODE END 0 */
 void wait_any_key()
 {
@@ -1094,13 +550,14 @@ void memory_test()
 		  }
 	  }
 	  
-	  LCD_Draw_Text(flag?"OK":"Memory Error",10,10, GREEN, 2, BLACK);
-	  LCD_Draw_Text(printNum16(blockErr),10,30, GREEN, 2, BLACK);
-	  if(flag)
-	  {
-		HAL_Delay(100);
-	  }
-	  else
+	  LCD_Draw_Text(flag?"OK":"Memory Error",80,130, GREEN, 1, BLACK);
+	  LCD_Draw_Text(printNum16(checkerror),80,140, BLACK, 1,GREEN);
+	  LCD_Draw_Text(printNum16(blockErr),80,150, GREEN, 1, BLACK);
+	  //~ if(flag)
+	  //~ {
+		//~ HAL_Delay(100);
+	  //~ }
+	  //~ else
 	  {
 		HAL_Delay(1000);
 		wait_any_key();
@@ -1144,20 +601,23 @@ void memory_test()
 	  poke(adr,0);
   }
   //~ LCD_Draw_Text(printNum16(flag),10,10, GREEN, 2, BLACK);
-  LCD_Draw_Text(flag?"OK":"Memory Error",10,10, GREEN, 2, BLACK);
-  LCD_Draw_Text(printNum16(stop),10,30, GREEN, 2, BLACK);
-  if(flag)
-  {
-	HAL_Delay(100);
-  }
-  else
+  LCD_Draw_Text(flag?"OK":"Memory Error",80,160, GREEN, 1, BLACK);
+  LCD_Draw_Text(printNum16(stop),80,170, GREEN, 1, BLACK);
+  LCD_Draw_Text(printNum16(checkerror),80,180, BLACK, 1,GREEN);
+  //~ if(flag)
+  //~ {
+	//~ HAL_Delay(100);
+  //~ }
+  //~ else
   {
 	HAL_Delay(1000);
 	wait_any_key();
   }
 }
+FATFS SD_FatFs;  /* File system object for SD card logical drive */
+char SD_Path[4]; /* SD card logical drive path */
 
-void readCard()
+int readCard()
 {
 	//	
 	//~ static int inited=0;
@@ -1169,8 +629,8 @@ void readCard()
 	    if(BSP_SD_Init() != MSD_OK)
 	    {
 		//~ LCD_Draw_Text("BS_FAIL",100,60, LG, 1,BLACK);    
-		z80_reset(1);
-		return ;
+		//~ z80_reset(1);
+		return 0;
 	    }  
 	    
 	    /* Check the mounted device */
@@ -1178,14 +638,14 @@ void readCard()
 	    {
 		//~ LCD_Draw_Text("~MOUNT",100,60, LG, 1,BLACK);    
 	      //~ TFT_DisplayErrorMessage(FATFS_NOT_MOUNTED);
-		z80_reset(1);
-		return ;
+		//~ z80_reset(1);
+		return 0;
 	    }  
 	  }
 	  else
 	  {
-		z80_reset(1);
-		return ;
+		//~ z80_reset(1);
+		return 0;
 	  }
 	//~ }
 	//~ inited =1;
@@ -1193,10 +653,10 @@ void readCard()
 	//~ HAL_Delay(1000);
   //~ MX_FATFS_Init();
 	clearFullScreen();
-	FRESULT res;
-	FILINFO MyFileInfo;
-	DIR MyDirectory;
-	FIL MyFile;
+	FRESULT 	res;
+	FILINFO 	MyFileInfo;
+	DIR 		MyDirectory;
+	FIL 		MyFile;
 	//~ int num = FATFS_GetAttachedDriversNbr();
 	//~ LCD_Draw_Text("drive:",10,0, GREEN, 1, BLACK);
 	//~ LCD_Draw_Text(printNum(num),10,CHAR_HEIGHT, GREEN, 1, BLACK);
@@ -1212,8 +672,7 @@ void readCard()
 			Coordinates[0] = -1;
 			if(numFiles==0)
 			{
-				z80_reset(1);
-				return ;
+				return 0;
 			}
 			while(Coordinates[0]==-1)
 			{
@@ -1227,7 +686,7 @@ void readCard()
 				
 			}
 			paintCross(Coordinates[0],Coordinates[1],8,YELLOW);
-			HAL_Delay(4000);
+			//~ HAL_Delay(4000);
 			chooseNum = (Coordinates[1]/48)*5+(Coordinates[0]/64);
 			numFiles = 0;
 			//~ LCD_Draw_Text(printNum(chooseNum),10,130, GREEN, 2, BLACK);
@@ -1243,34 +702,21 @@ void readCard()
 	      res = f_readdir(&MyDirectory, &MyFileInfo);
 	      if(res != FR_OK || MyFileInfo.fname[0] == 0) 
 		break;
-	      //~ if(MyFileInfo.fname[0] == '.') 
-		//~ continue;
 	      //~ if(numFiles<LCD_getHeight()/CHAR_HEIGHT-2)
 	      {
-		      //~ int cl = BLUE;
 		      if(strncmp(MyFileInfo.fname,"SPEC",4)==0)
 		      {
-			      //~ cl= GREEN;
 			      if(f_open(&MyFile,MyFileInfo.fname, FA_READ)==FR_OK)
 			      {
-				     UINT BytesRead;
-				     if(pass==0)
-				     {		
-	//~ ofs.write((const char*)&reg,sizeof(reg));
-	//~ ofs.write((const char*)&reg_,sizeof(reg_));
-	//~ ofs.write((const char*)&IM,sizeof(IM));
-	//~ ofs.write((const char*)&IFF1,sizeof(IFF1));
-	//~ ofs.write((const char*)&IFF2,sizeof(IFF2));
-	//~ ofs.write((const char*)&halt,sizeof(halt));
-		//~ ofs.write((const char*)&RAM,sizeof(RAM));
-					     //
-					     
+					UINT BytesRead;
+					u8 bt[0x100];
+					int y,k;
+					if(pass==0)
+					{		
 					     //read icon to screen;
 					     int x = numFiles%5;
 					     int yy = numFiles/5;
-					     int k;
-					     int y;
-					     u8 bt[32*3];
+					     //~ u8 bt[32*3];
 					     for(y=0;y<24;y++)
 					     {
 						 f_read(&MyFile,&bt[0],32*3,&BytesRead);
@@ -1281,46 +727,42 @@ void readCard()
 						}
 					     }
 					      numFiles++;
-				      }
-				      else
-				      {
+					}
+					else
+					{
 					      if(numFiles>=chooseNum)
 					      {
 						      clearFullScreen();
-						      f_lseek(&MyFile,32*3*24);
+						      //~ f_lseek(&MyFile,32*3*24);
+						      for(y=0;y<24;y++)
+						      {
+							      f_read(&MyFile,&bt[0],32*3,&BytesRead);
+						      }
 						      f_read(&MyFile,&reg,sizeof(reg),&BytesRead);
 						      f_read(&MyFile,&reg_,sizeof(reg_),&BytesRead);
 						      f_read(&MyFile,&IM,sizeof(IM),&BytesRead);
 						      f_read(&MyFile,&IFF1,sizeof(IFF1),&BytesRead);
 						      f_read(&MyFile,&IFF2,sizeof(IFF2),&BytesRead);
 						      f_read(&MyFile,&halt,sizeof(halt),&BytesRead);
-						      uint32_t adr;
-					      
-						      for( adr=0x4000;adr<=0xffff;adr+=0x40)
+						      for( y=0x4000;y<=0xffff;y+=0x100)
 						      {		
-							  u8 bt[0x40];
-							  f_read(&MyFile,&bt[0],0x40,&BytesRead);
-							      int k;
-							 for(k=0;k<0x40;k++)
-							{		
-								poke(adr+k,bt[k]);
-							}
-							//~ LCD_Draw_Text(printNum16(adr),150,80, GREEN, 2,BLACK);
+								f_read(&MyFile,&bt[0],0x100,&BytesRead);
+								 for(k=0;k<0x100;k++)
+								{		
+									poke(y+k,bt[k]);
+								}
 						      }
+						      checkerror = 0;
 						      // 
 						      f_close(&MyFile);
 						      f_closedir(&MyDirectory);
 						      f_mount(NULL,SD_Path, 0);
 						      FATFS_UnLinkDriver(SD_Path);
-						      return;
+						      return 1;
 					      }
 					      numFiles++;
 				      }
 				f_close(&MyFile);
-			      }
-			      else
-			      {
-				      //~ cl= RED;
 			      }
 			      
 		      }
@@ -1339,123 +781,39 @@ void readCard()
 		//~ LCD_Draw_Text("open fail",10,130, GREEN, 2, BLACK);
 	}
 	}
-      f_mount(NULL,SD_Path, 0);
-      FATFS_UnLinkDriver(SD_Path);
-		z80_reset(1);
-		return ;
+	f_mount(NULL,SD_Path, 0);
+	FATFS_UnLinkDriver(SD_Path);
+		//~ z80_reset(1);
+	return  0;
       	
 }
 void TP_init_default();
 void minit()
 {
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  LCD_init(); 
-  //~ LCD_setOrientation(ORIENTATION_PORTRAIT);
-  LCD_setOrientation(ORIENTATION_LANDSCAPE);
-  
-  LCD_fillRect(0, 0, LCD_getWidth(), LCD_getHeight(), BLACK);
-  //~ LCD_Draw_Text("Hello",10,10 , GREEN, 2, BLUE);
-  //~ HAL_Delay(100);
-  //~ LCD_Draw_Text("From Dima ",10,10 , GREEN, 2, BLUE);
-  //~ HAL_Delay(100);
-  //~ LCD_Draw_Text("Samsonov  ",10,10 , GREEN, 2, BLUE);
-  //~ HAL_Delay(100);
-  //~ reCalibrateTouch(0);
-	//~ reCalibrateTouch(1);
-  //~ touchSetting();
-  TP_init_default();
-#if 0  
-  {
-  int k;
-  int flag = 1;
-for(k=0;k<256;k++)
-{
-	uint8_t res   = (1-__builtin_parity(k))*0x04;
-	uint8_t res1 = parity_table[k];
-	if(res!=res1)
-	{
-		flag =0;
-		//~ std::cout<<hex<<"k = "<<(int)k <<" res = "<<(int)res <<" res1 = "<<(int)res1<<"\n"; 
-	}
-	
-}
-	LCD_Draw_Text(flag?"OK":"Memory Error",10,10, GREEN, 2, BLACK);
-	HAL_Delay(10000);
-}
-#endif
-#if 1  
-	  clearFullScreen();
-#if 0
-  uint8_t result = BSP_SD_Init();
-  //~ uint8_t result = sd_initialize(5);
-  if(!result)
-  {
-	  LCD_Draw_Text("Card found",10,10, GREEN, 2, BLACK);
-	  LCD_Draw_Text(printNum16_2(result),10,30, GREEN, 2, BLUE);
-	  
-	  SD_CardInfo CardInfo;
-	  
-	  uint8_t result1 = BSP_SD_GetCardInfo(&CardInfo);
-	  
-	  LCD_Draw_Text(printNumU(result1),10,50, GREEN, 2, BLACK);
-	  LCD_Draw_Text(printNumU(CardInfo.CardCapacity),10,70, GREEN, 2, BLACK);
-	  LCD_Draw_Text(printNumU(CardInfo.CardBlockSize),10,90, GREEN, 2, BLACK);
-	  LCD_Draw_Text(printNumU(CardInfo.LogBlockNbr),10,110, GREEN, 2, BLACK);
-	  LCD_Draw_Text(printNumU(CardInfo.LogBlockSize),10,130, GREEN, 2, BLACK);
-	  result = BSP_SD_GetCardState();
-	  LCD_Draw_Text(printNum16_2(result),10,150, GREEN, 2, BLACK);
-	  
-  }
-  else 
-  {
-	  LCD_Draw_Text("Card not found",10,30, GREEN, 2, BLACK);
-	  HAL_Delay(1000);
-  }
-#endif  
-  
-  
+	/* Infinite loop */
+	/* USER CODE BEGIN WHILE */
+	LCD_init(); 
+	//~ LCD_setOrientation(ORIENTATION_PORTRAIT);
+	LCD_setOrientation(ORIENTATION_LANDSCAPE);
+
+	LCD_fillRect(0, 0, LCD_getWidth(), LCD_getHeight(), BLACK);
+	TP_init_default();
+
 	clearFullScreen();
   
 	initBlocksAndLines();
   
-	//~ memory_test();	
+	memory_test();	
 	z80_reset(1);
 	missSaveMemory = 0;
 	missReadMemory = 0;
-	readCard() ; 
-	//~ wait_any_key();
-  //~ HAL_Delay(10000);
-#endif 
-       //~ clearFullScreen();
-#if 0	
-	LCD_fillRect(0, 0, LCD_getWidth(), LCD_getHeight(), color);
-	int32_t Coordinates[2];
-	RTC_DateTypeDef Date;
-	int oldSec = -1;
-	int oldMin = -1;
-	int oldDay = -1;
-	 
-	int bW= LCD_getWidth()/8;
-	int YY = LCD_getHeight()-CHAR_HEIGHT*3-1;
-	addKey("H+",2,0,YY,3);
-	addKey("H-"  ,3,bW,YY,3);
-	addKey("M+",4,bW*2,YY,3);
-	addKey("M-"  ,5,bW*3,YY,3);
-	addKey("SC"   ,6,bW*4,YY,3);
-	addKey("CL"   ,7,bW*5,YY,3);
-	addKey("CS"   ,8,bW*6,YY,3);
-	addKey("SS"   ,9,bW*7,YY,3);
-#define CLOCK 0  
-#define SCOPE 1  
-#define CARD   2  
-#define SPEED 3  
-	 int state = CLOCK;
-	 LCD_idle(1) ;
-	 paintKeys();
-	 int bRepaint = 0;
-#endif	 
+	if(!readCard())
+	{
+		clearFullScreen();
+		z80_reset(1);
+	}
+	checkerror = 0; 
 	setAttr();	
 }
 int flagg = 1;
@@ -1464,21 +822,29 @@ void LCD_FullRect3(uint16_t x1, uint16_t y1,uint8_t * adress,uint16_t w,uint16_t
 int32_t  tickperv =-1000;
 void mloop()
 {
-	uint32_t  tickstart = HAL_GetTick();
+	int32_t  tickstart = HAL_GetTick();
 	//~ tstate_summ = 0;
 	//~ for(k=0;k<20000;k++)
 	if(!flagg)
 	{
+		//~ LCD_Draw_Text("A",80,60, BLACK, 1,GREEN);
+		//~ HAL_SPI_DeInit(&hspi1);	
+		//~ MX_SPI1_Init(1);
+		//~ SPI_MASTER->CR1 &= ~SPI_CR1_SPE; // DISABLE SPI
+		//~ SPI_MASTER->CR1 |= SPI_CR1_SPE;  // ENABLE SPI
+		
 		for(tstates=0;tstates<69888u;)
 		{ 
 			z80_run();
 		}
+		//~ LCD_Draw_Text("B",80,60, BLACK, 1,GREEN);
 	}
 	else
 	{
 		setAttr();	
 	}
 	uint32_t tickCurrent =  HAL_GetTick();
+	//~ LCD_Draw_Text("C",80,60, BLACK, 1,GREEN);
 	while(HAL_GetTick()-tickstart<20)
 	{
 		HAL_Delay(1);
@@ -1487,22 +853,29 @@ void mloop()
 	flagg =0;
 	
 	uint32_t time_is1 = (tickCurrent - tickstart);
+	//~ LCD_Draw_Text("D",80,60, BLACK, 1,GREEN);
 	if(TP_Touchpad_Pressed())
 	{
 		flagg = 1;
-		readCard();
+		if(!readCard())
+		{
+			clearFullScreen();
+			z80_reset(1);
+		}
 	}
 	//~ char rb[0x10];
 	//~ sprintf(rb,"%03x",opcode);
+	//~ LCD_Draw_Text("E",80,60, BLACK, 1,GREEN);
 	if(HAL_GetTick()-tickperv>=40)
 	{
 				tickperv = HAL_GetTick();
 		
+#if 0				
 				HAL_SPI_DeInit(&hspi1);	
 				MX_SPI1_Init(1);
 				SPI_MASTER->CR1 &= ~SPI_CR1_SPE; // DISABLE SPI
 				SPI_MASTER->CR1 |= SPI_CR1_SPE;  // ENABLE SPI
-		
+#endif		
 				//~ HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BCD);
 				static uint16_t old_border =0xffff;
 				if(old_border!=(border&0x7))
@@ -1578,17 +951,45 @@ void mloop()
 				
 		//~ MX_SPI1_Init(0);
 		//~ SPIx_Error2 ();
+#if 0				
 		SPIx_Error1 ();
 		SPI_MASTER->CR1 &= ~SPI_CR1_SPE; // DISABLE SPI
 		SPI_MASTER->CR1 |= SPI_CR1_SPE;  // ENABLE SPI
-
+		SPIx_Error1 ();
+		SPI_MASTER->CR1 &= ~SPI_CR1_SPE; // DISABLE SPI
+		SPI_MASTER->CR1 |= SPI_CR1_SPE;  // ENABLE SPI
+#endif				
+		
 	clearAttr();	
 	}
+	//~ LCD_Draw_Text("F",80,60, BLACK, 1,GREEN);
 	screen_IRQ = 1;
-	//~ LCD_Draw_Text(printNum(time_is1),100,60, BLACK, 2,GREEN);
-	//~ LCD_Draw_Text(printNum16(timeTick),100,80, BLACK, 2,GREEN);
-	//~ LCD_Draw_Text(printNum16(missSaveMemory),100,100, BLACK, 2,GREEN);
-	//~ LCD_Draw_Text(printNum16(missReadMemory),100,120, BLACK, 2,GREEN);
+	//~ IFF1 = 1;
+	//~ uint16_t res =((KEYB_0_GPIO_Port->IDR>>3)&0b1111111)|0x1000;
+	//~ {
+		//~ int stable[] = {KEYB_0_Pin,KEYB_1_Pin,KEYB_2_Pin,KEYB_3_Pin,KEYB_4_Pin,KEYB_5_Pin,KEYB_6_Pin};
+		//~ int k; 
+		//~ for(k=0;k<7;k++)
+		//~ {
+			//~ res<<=1;
+			//~ res |= HAL_GPIO_ReadPin(KEYB_0_GPIO_Port,stable[k]);
+			
+		//~ }
+	//~ }
+	
+	LCD_Draw_Text(printNum16(time_is1),80,70, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum16(timeTick),80,80, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum16(missSaveMemory),80,90, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum16(missReadMemory),80,100, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum16(PC),80,110, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum16(halt),80,120, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum16(tstates),80,130, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum16(interrupts_enabled_at),80,140, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum16(IFF1),80,150, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum16(IM),80,160, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum16(HAL_GetTick()),80,170, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum16(checkerror),80,180, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum16(checkdeinit),80,190, BLACK, 1,GREEN);
 	missSaveMemory = 0;
 	missReadMemory = 0;
 }

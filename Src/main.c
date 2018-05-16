@@ -254,10 +254,10 @@ void MX_SPI1_Init(int flag)
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.CLKPolarity = flag?SPI_POLARITY_LOW:SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = flag?SPI_PHASE_1EDGE:SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = flag?SPI_BAUDRATEPRESCALER_2:SPI_BAUDRATEPRESCALER_4;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -291,34 +291,51 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, TFT_LED_Pin|TFT_RESET_Pin|TFT_DC_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, TOUCH_CS_Pin|TFT_CS_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(TOUCH_CS_GPIO_Port, TOUCH_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(SOUND_GPIO_Port, SOUND_Pin, GPIO_PIN_RESET);
 
 /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(SD1_CS_GPIO_Port, SD1_CS_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(SD1_CS_GPIO_Port, SD1_CS_Pin | TFT_CS_Pin, GPIO_PIN_SET);
+
+ /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(KEY_SCAN_GPIO_Port, KEY_SCAN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : TFT_LED_Pin TOUCH_CS_Pin TFT_RESET_Pin TFT_DC_Pin 
                            TFT_CS_Pin */
-  GPIO_InitStruct.Pin = TFT_LED_Pin|TOUCH_CS_Pin|TFT_RESET_Pin|TFT_DC_Pin 
-                          |TFT_CS_Pin;
+  GPIO_InitStruct.Pin = TFT_LED_Pin|TOUCH_CS_Pin|TFT_RESET_Pin|TFT_DC_Pin ;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 
   /*Configure GPIO pin : SD1_CS_Pin */
-  GPIO_InitStruct.Pin = SD1_CS_Pin|SOUND_Pin;
+  GPIO_InitStruct.Pin = SD1_CS_Pin|SOUND_Pin|TFT_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : TOUCH1_IRQ_Pin */
-  GPIO_InitStruct.Pin = TOUCH1_IRQ_Pin;
+  GPIO_InitStruct.Pin = TOUCH_IRQ_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(TOUCH1_IRQ_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(TOUCH_IRQ_GPIO_Port, &GPIO_InitStruct);
+  
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = KEY_SCAN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(KEY_SCAN_GPIO_Port, &GPIO_InitStruct);
+
+  
+  /*Configure GPIO pins : PBPin PBPin PBPin PBPin 
+                           PBPin PBPin PBPin */
+  GPIO_InitStruct.Pin = KEYB_0_Pin|KEYB_1_Pin|KEYB_2_Pin|KEYB_3_Pin 
+                          |KEYB_4_Pin|KEYB_5_Pin|KEYB_6_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 }
 

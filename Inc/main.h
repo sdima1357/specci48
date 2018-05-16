@@ -59,27 +59,42 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define TFT_LED_Pin GPIO_PIN_0
-#define TFT_LED_GPIO_Port GPIOA
+#define TOUCH_IRQ_Pin GPIO_PIN_0
+#define TOUCH_IRQ_GPIO_Port GPIOA
 #define TOUCH_CS_Pin GPIO_PIN_1
 #define TOUCH_CS_GPIO_Port GPIOA
-#define TFT_RESET_Pin GPIO_PIN_2
-#define TFT_RESET_GPIO_Port GPIOA
+#define TFT_LED_Pin GPIO_PIN_2
+#define TFT_LED_GPIO_Port GPIOA
 #define TFT_DC_Pin GPIO_PIN_3
 #define TFT_DC_GPIO_Port GPIOA
-#define TFT_CS_Pin GPIO_PIN_4
-#define TFT_CS_GPIO_Port GPIOA
-#define SD1_CS_Pin GPIO_PIN_12
+#define TFT_RESET_Pin GPIO_PIN_4
+#define TFT_RESET_GPIO_Port GPIOA
+#define ADC1_Pin GPIO_PIN_0
+#define ADC1_GPIO_Port GPIOB
+#define TFT_CS_Pin GPIO_PIN_10
+#define TFT_CS_GPIO_Port GPIOB
+#define SD1_CS_Pin GPIO_PIN_11
 #define SD1_CS_GPIO_Port GPIOB
-#define TOUCH1_IRQ_Pin GPIO_PIN_6
-#define TOUCH1_IRQ_GPIO_Port GPIOB
-
-/* ########################## Assert Selection ############################## */
-/**
-  * @brief Uncomment the line below to expanse the "assert_param" macro in the 
-  *        HAL drivers code
-  */
-/* #define USE_FULL_ASSERT    1U */
+#define KEY_SCAN_Pin GPIO_PIN_12
+#define KEY_SCAN_GPIO_Port GPIOB
+#define TimerOut_Pin GPIO_PIN_8
+#define TimerOut_GPIO_Port GPIOA
+#define TimerOut1_Pin GPIO_PIN_11
+#define TimerOut1_GPIO_Port GPIOA
+#define KEYB_0_Pin GPIO_PIN_3
+#define KEYB_0_GPIO_Port GPIOB
+#define KEYB_1_Pin GPIO_PIN_4
+#define KEYB_1_GPIO_Port GPIOB
+#define KEYB_2_Pin GPIO_PIN_5
+#define KEYB_2_GPIO_Port GPIOB
+#define KEYB_3_Pin GPIO_PIN_6
+#define KEYB_3_GPIO_Port GPIOB
+#define KEYB_4_Pin GPIO_PIN_7
+#define KEYB_4_GPIO_Port GPIOB
+#define KEYB_5_Pin GPIO_PIN_8
+#define KEYB_5_GPIO_Port GPIOB
+#define KEYB_6_Pin GPIO_PIN_9
+#define KEYB_6_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 #define SOUND_Pin GPIO_PIN_13
@@ -97,10 +112,11 @@
 #define TFT_DC_PIN      TFT_DC_Pin
 #define TFT_CS_PIN      TFT_CS_Pin
 
-#define SPI_MASTER_CLK               RCC_APB2Periph_SPI1
+#define SPI_MASTER                   SPI1
+//~ #define SPI_MASTER_CLK               RCC_APB2Periph_SPI1
 #define SPI_MASTER_GPIO              GPIOA
-#define SPI_MASTER_GPIO_CLK          RCC_APB2Periph_GPIOA
-#define SPI_MASTER_PIN_NSS           GPIO_PIN_4
+//~ #define SPI_MASTER_GPIO_CLK          RCC_APB2Periph_GPIOA
+//~ #define SPI_MASTER_PIN_NSS           GPIO_PIN_4
 #define SPI_MASTER_PIN_SCK           GPIO_PIN_5
 #define SPI_MASTER_PIN_MISO          GPIO_PIN_6
 #define SPI_MASTER_PIN_MOSI          GPIO_PIN_7
@@ -128,7 +144,7 @@
 #define LG                    ((0xd7>>3)<<11)|((0xd0>>2)<<5)|(0xd7>>3)
 //565 
 //~ 0b11010111
-typedef float FLOAT;
+typedef int FLOAT;
 typedef struct
 {
 	FLOAT Transform[2][3];

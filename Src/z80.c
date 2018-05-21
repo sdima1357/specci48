@@ -1,9 +1,10 @@
-#include "stm32f4xx.h"
+//~ #include "stm32f4xx.h"
+#include "z80.h"
+//~ #include <stdio.h>
+
 int32_t tstates = 0;
 int32_t interrupts_enabled_at;
 
-#include "z80.h"
-#include <stdio.h>
 /*include z80 registr*/
 ZReg 		reg;
 ZReg_Shadow 	reg_;

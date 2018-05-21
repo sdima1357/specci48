@@ -1,0 +1,170 @@
+ARM GAS  /tmp/ccaH5lp8.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"ff_gen_drv.c"
+  15              		.section	.text.FATFS_LinkDriverEx,"ax",%progbits
+  16              		.align	1
+  17              		.global	FATFS_LinkDriverEx
+  18              		.thumb
+  19              		.thumb_func
+  21              	FATFS_LinkDriverEx:
+  22              		@ args = 0, pretend = 0, frame = 0
+  23              		@ frame_needed = 0, uses_anonymous_args = 0
+  24 0000 30B5     		push	{r4, r5, lr}
+  25 0002 0F4B     		ldr	r3, .L5
+  26 0004 5C7A     		ldrb	r4, [r3, #9]	@ zero_extendqisi2
+  27 0006 012C     		cmp	r4, #1
+  28 0008 18D8     		bhi	.L3
+  29 000a 5D7A     		ldrb	r5, [r3, #9]	@ zero_extendqisi2
+  30 000c 0024     		movs	r4, #0
+  31 000e EDB2     		uxtb	r5, r5
+  32 0010 5C55     		strb	r4, [r3, r5]
+  33 0012 5D7A     		ldrb	r5, [r3, #9]	@ zero_extendqisi2
+  34 0014 03EB8505 		add	r5, r3, r5, lsl #2
+  35 0018 6860     		str	r0, [r5, #4]
+  36 001a 587A     		ldrb	r0, [r3, #9]	@ zero_extendqisi2
+  37 001c 1844     		add	r0, r0, r3
+  38 001e 0272     		strb	r2, [r0, #8]
+  39 0020 5A7A     		ldrb	r2, [r3, #9]	@ zero_extendqisi2
+  40 0022 D2B2     		uxtb	r2, r2
+  41 0024 501C     		adds	r0, r2, #1
+  42 0026 C0B2     		uxtb	r0, r0
+  43 0028 5872     		strb	r0, [r3, #9]
+  44 002a 3A23     		movs	r3, #58
+  45 002c 3032     		adds	r2, r2, #48
+  46 002e 4B70     		strb	r3, [r1, #1]
+  47 0030 2F23     		movs	r3, #47
+  48 0032 0A70     		strb	r2, [r1]
+  49 0034 8B70     		strb	r3, [r1, #2]
+  50 0036 CC70     		strb	r4, [r1, #3]
+  51 0038 2046     		mov	r0, r4
+  52 003a 30BD     		pop	{r4, r5, pc}
+  53              	.L3:
+  54 003c 0120     		movs	r0, #1
+  55 003e 30BD     		pop	{r4, r5, pc}
+  56              	.L6:
+  57              		.align	2
+  58              	.L5:
+ARM GAS  /tmp/ccaH5lp8.s 			page 2
+
+
+  59 0040 00000000 		.word	.LANCHOR0
+  61              		.section	.text.FATFS_LinkDriver,"ax",%progbits
+  62              		.align	1
+  63              		.global	FATFS_LinkDriver
+  64              		.thumb
+  65              		.thumb_func
+  67              	FATFS_LinkDriver:
+  68              		@ args = 0, pretend = 0, frame = 0
+  69              		@ frame_needed = 0, uses_anonymous_args = 0
+  70              		@ link register save eliminated.
+  71 0000 0022     		movs	r2, #0
+  72 0002 FFF7FEBF 		b	FATFS_LinkDriverEx
+  74              		.section	.text.FATFS_UnLinkDriverEx,"ax",%progbits
+  75              		.align	1
+  76              		.global	FATFS_UnLinkDriverEx
+  77              		.thumb
+  78              		.thumb_func
+  80              	FATFS_UnLinkDriverEx:
+  81              		@ args = 0, pretend = 0, frame = 0
+  82              		@ frame_needed = 0, uses_anonymous_args = 0
+  83              		@ link register save eliminated.
+  84 0000 0A4A     		ldr	r2, .L12
+  85 0002 537A     		ldrb	r3, [r2, #9]	@ zero_extendqisi2
+  86 0004 7BB1     		cbz	r3, .L11
+  87 0006 0378     		ldrb	r3, [r0]	@ zero_extendqisi2
+  88 0008 303B     		subs	r3, r3, #48
+  89 000a DBB2     		uxtb	r3, r3
+  90 000c 02EB8301 		add	r1, r2, r3, lsl #2
+  91 0010 4868     		ldr	r0, [r1, #4]
+  92 0012 40B1     		cbz	r0, .L11
+  93 0014 0020     		movs	r0, #0
+  94 0016 1344     		add	r3, r3, r2
+  95 0018 1872     		strb	r0, [r3, #8]
+  96 001a 537A     		ldrb	r3, [r2, #9]	@ zero_extendqisi2
+  97 001c 4860     		str	r0, [r1, #4]
+  98 001e 013B     		subs	r3, r3, #1
+  99 0020 DBB2     		uxtb	r3, r3
+ 100 0022 5372     		strb	r3, [r2, #9]
+ 101 0024 7047     		bx	lr
+ 102              	.L11:
+ 103 0026 0120     		movs	r0, #1
+ 104 0028 7047     		bx	lr
+ 105              	.L13:
+ 106 002a 00BF     		.align	2
+ 107              	.L12:
+ 108 002c 00000000 		.word	.LANCHOR0
+ 110              		.section	.text.FATFS_UnLinkDriver,"ax",%progbits
+ 111              		.align	1
+ 112              		.global	FATFS_UnLinkDriver
+ 113              		.thumb
+ 114              		.thumb_func
+ 116              	FATFS_UnLinkDriver:
+ 117              		@ args = 0, pretend = 0, frame = 0
+ 118              		@ frame_needed = 0, uses_anonymous_args = 0
+ 119              		@ link register save eliminated.
+ 120 0000 0021     		movs	r1, #0
+ 121 0002 FFF7FEBF 		b	FATFS_UnLinkDriverEx
+ARM GAS  /tmp/ccaH5lp8.s 			page 3
+
+
+ 123              		.section	.text.FATFS_GetAttachedDriversNbr,"ax",%progbits
+ 124              		.align	1
+ 125              		.global	FATFS_GetAttachedDriversNbr
+ 126              		.thumb
+ 127              		.thumb_func
+ 129              	FATFS_GetAttachedDriversNbr:
+ 130              		@ args = 0, pretend = 0, frame = 0
+ 131              		@ frame_needed = 0, uses_anonymous_args = 0
+ 132              		@ link register save eliminated.
+ 133 0000 014B     		ldr	r3, .L16
+ 134 0002 587A     		ldrb	r0, [r3, #9]	@ zero_extendqisi2
+ 135 0004 7047     		bx	lr
+ 136              	.L17:
+ 137 0006 00BF     		.align	2
+ 138              	.L16:
+ 139 0008 00000000 		.word	.LANCHOR0
+ 141              		.global	disk
+ 142              		.section	.bss.disk,"aw",%nobits
+ 143              		.align	2
+ 144              		.set	.LANCHOR0,. + 0
+ 147              	disk:
+ 148 0000 00000000 		.space	12
+ 148      00000000 
+ 148      00000000 
+ 149              		.ident	"GCC: (15:4.9.3+svn231177-1) 4.9.3 20150529 (prerelease)"
+ARM GAS  /tmp/ccaH5lp8.s 			page 4
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ff_gen_drv.c
+     /tmp/ccaH5lp8.s:16     .text.FATFS_LinkDriverEx:0000000000000000 $t
+     /tmp/ccaH5lp8.s:21     .text.FATFS_LinkDriverEx:0000000000000000 FATFS_LinkDriverEx
+     /tmp/ccaH5lp8.s:59     .text.FATFS_LinkDriverEx:0000000000000040 $d
+     /tmp/ccaH5lp8.s:62     .text.FATFS_LinkDriver:0000000000000000 $t
+     /tmp/ccaH5lp8.s:67     .text.FATFS_LinkDriver:0000000000000000 FATFS_LinkDriver
+     /tmp/ccaH5lp8.s:75     .text.FATFS_UnLinkDriverEx:0000000000000000 $t
+     /tmp/ccaH5lp8.s:80     .text.FATFS_UnLinkDriverEx:0000000000000000 FATFS_UnLinkDriverEx
+     /tmp/ccaH5lp8.s:108    .text.FATFS_UnLinkDriverEx:000000000000002c $d
+     /tmp/ccaH5lp8.s:111    .text.FATFS_UnLinkDriver:0000000000000000 $t
+     /tmp/ccaH5lp8.s:116    .text.FATFS_UnLinkDriver:0000000000000000 FATFS_UnLinkDriver
+     /tmp/ccaH5lp8.s:124    .text.FATFS_GetAttachedDriversNbr:0000000000000000 $t
+     /tmp/ccaH5lp8.s:129    .text.FATFS_GetAttachedDriversNbr:0000000000000000 FATFS_GetAttachedDriversNbr
+     /tmp/ccaH5lp8.s:139    .text.FATFS_GetAttachedDriversNbr:0000000000000008 $d
+     /tmp/ccaH5lp8.s:147    .bss.disk:0000000000000000 disk
+     /tmp/ccaH5lp8.s:143    .bss.disk:0000000000000000 $d
+
+NO UNDEFINED SYMBOLS

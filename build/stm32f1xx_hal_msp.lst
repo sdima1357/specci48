@@ -1,0 +1,246 @@
+ARM GAS  /tmp/cckGrNPe.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"stm32f1xx_hal_msp.c"
+  15              		.section	.text.HAL_MspInit,"ax",%progbits
+  16              		.align	1
+  17              		.global	HAL_MspInit
+  18              		.thumb
+  19              		.thumb_func
+  21              	HAL_MspInit:
+  22              		@ args = 0, pretend = 0, frame = 8
+  23              		@ frame_needed = 0, uses_anonymous_args = 0
+  24 0000 204B     		ldr	r3, .L2
+  25 0002 07B5     		push	{r0, r1, r2, lr}
+  26 0004 9A69     		ldr	r2, [r3, #24]
+  27 0006 0320     		movs	r0, #3
+  28 0008 42F00102 		orr	r2, r2, #1
+  29 000c 9A61     		str	r2, [r3, #24]
+  30 000e 9B69     		ldr	r3, [r3, #24]
+  31 0010 03F00103 		and	r3, r3, #1
+  32 0014 0193     		str	r3, [sp, #4]
+  33 0016 019B     		ldr	r3, [sp, #4]
+  34 0018 FFF7FEFF 		bl	HAL_NVIC_SetPriorityGrouping
+  35 001c 0021     		movs	r1, #0
+  36 001e 0A46     		mov	r2, r1
+  37 0020 6FF00B00 		mvn	r0, #11
+  38 0024 FFF7FEFF 		bl	HAL_NVIC_SetPriority
+  39 0028 0021     		movs	r1, #0
+  40 002a 0A46     		mov	r2, r1
+  41 002c 6FF00A00 		mvn	r0, #10
+  42 0030 FFF7FEFF 		bl	HAL_NVIC_SetPriority
+  43 0034 0021     		movs	r1, #0
+  44 0036 0A46     		mov	r2, r1
+  45 0038 6FF00900 		mvn	r0, #9
+  46 003c FFF7FEFF 		bl	HAL_NVIC_SetPriority
+  47 0040 0021     		movs	r1, #0
+  48 0042 0A46     		mov	r2, r1
+  49 0044 6FF00400 		mvn	r0, #4
+  50 0048 FFF7FEFF 		bl	HAL_NVIC_SetPriority
+  51 004c 0021     		movs	r1, #0
+  52 004e 0A46     		mov	r2, r1
+  53 0050 6FF00300 		mvn	r0, #3
+  54 0054 FFF7FEFF 		bl	HAL_NVIC_SetPriority
+  55 0058 0021     		movs	r1, #0
+  56 005a 0A46     		mov	r2, r1
+  57 005c 6FF00100 		mvn	r0, #1
+  58 0060 FFF7FEFF 		bl	HAL_NVIC_SetPriority
+ARM GAS  /tmp/cckGrNPe.s 			page 2
+
+
+  59 0064 0021     		movs	r1, #0
+  60 0066 0A46     		mov	r2, r1
+  61 0068 4FF0FF30 		mov	r0, #-1
+  62 006c FFF7FEFF 		bl	HAL_NVIC_SetPriority
+  63 0070 054A     		ldr	r2, .L2+4
+  64 0072 5368     		ldr	r3, [r2, #4]
+  65 0074 23F0E063 		bic	r3, r3, #117440512
+  66 0078 43F00073 		orr	r3, r3, #33554432
+  67 007c 5360     		str	r3, [r2, #4]
+  68 007e 03B0     		add	sp, sp, #12
+  69              		@ sp needed
+  70 0080 5DF804FB 		ldr	pc, [sp], #4
+  71              	.L3:
+  72              		.align	2
+  73              	.L2:
+  74 0084 00100240 		.word	1073876992
+  75 0088 00000140 		.word	1073807360
+  77              		.section	.text.HAL_RTC_MspInit,"ax",%progbits
+  78              		.align	1
+  79              		.global	HAL_RTC_MspInit
+  80              		.thumb
+  81              		.thumb_func
+  83              	HAL_RTC_MspInit:
+  84              		@ args = 0, pretend = 0, frame = 8
+  85              		@ frame_needed = 0, uses_anonymous_args = 0
+  86 0000 07B5     		push	{r0, r1, r2, lr}
+  87 0002 0B4B     		ldr	r3, .L7
+  88 0004 0268     		ldr	r2, [r0]
+  89 0006 9A42     		cmp	r2, r3
+  90 0008 0ED1     		bne	.L4
+  91 000a FFF7FEFF 		bl	HAL_PWR_EnableBkUpAccess
+  92 000e 094B     		ldr	r3, .L7+4
+  93 0010 DA69     		ldr	r2, [r3, #28]
+  94 0012 42F00062 		orr	r2, r2, #134217728
+  95 0016 DA61     		str	r2, [r3, #28]
+  96 0018 DB69     		ldr	r3, [r3, #28]
+  97 001a 0122     		movs	r2, #1
+  98 001c 03F00063 		and	r3, r3, #134217728
+  99 0020 0193     		str	r3, [sp, #4]
+ 100 0022 019B     		ldr	r3, [sp, #4]
+ 101 0024 044B     		ldr	r3, .L7+8
+ 102 0026 1A60     		str	r2, [r3]
+ 103              	.L4:
+ 104 0028 03B0     		add	sp, sp, #12
+ 105              		@ sp needed
+ 106 002a 5DF804FB 		ldr	pc, [sp], #4
+ 107              	.L8:
+ 108 002e 00BF     		.align	2
+ 109              	.L7:
+ 110 0030 00280040 		.word	1073752064
+ 111 0034 00100240 		.word	1073876992
+ 112 0038 3C044242 		.word	1111622716
+ 114              		.section	.text.HAL_RTC_MspDeInit,"ax",%progbits
+ 115              		.align	1
+ 116              		.global	HAL_RTC_MspDeInit
+ 117              		.thumb
+ 118              		.thumb_func
+ARM GAS  /tmp/cckGrNPe.s 			page 3
+
+
+ 120              	HAL_RTC_MspDeInit:
+ 121              		@ args = 0, pretend = 0, frame = 0
+ 122              		@ frame_needed = 0, uses_anonymous_args = 0
+ 123              		@ link register save eliminated.
+ 124 0000 0268     		ldr	r2, [r0]
+ 125 0002 034B     		ldr	r3, .L11
+ 126 0004 9A42     		cmp	r2, r3
+ 127 0006 02BF     		ittt	eq
+ 128 0008 024B     		ldreq	r3, .L11+4
+ 129 000a 0022     		moveq	r2, #0
+ 130 000c 1A60     		streq	r2, [r3]
+ 131 000e 7047     		bx	lr
+ 132              	.L12:
+ 133              		.align	2
+ 134              	.L11:
+ 135 0010 00280040 		.word	1073752064
+ 136 0014 3C044242 		.word	1111622716
+ 138              		.section	.text.HAL_SPI_MspInit,"ax",%progbits
+ 139              		.align	1
+ 140              		.global	HAL_SPI_MspInit
+ 141              		.thumb
+ 142              		.thumb_func
+ 144              	HAL_SPI_MspInit:
+ 145              		@ args = 0, pretend = 0, frame = 24
+ 146              		@ frame_needed = 0, uses_anonymous_args = 0
+ 147 0000 7FB5     		push	{r0, r1, r2, r3, r4, r5, r6, lr}
+ 148 0002 0268     		ldr	r2, [r0]
+ 149 0004 114B     		ldr	r3, .L15
+ 150 0006 9A42     		cmp	r2, r3
+ 151 0008 1DD1     		bne	.L13
+ 152 000a 03F56043 		add	r3, r3, #57344
+ 153 000e 9A69     		ldr	r2, [r3, #24]
+ 154 0010 0F48     		ldr	r0, .L15+4
+ 155 0012 42F48052 		orr	r2, r2, #4096
+ 156 0016 9A61     		str	r2, [r3, #24]
+ 157 0018 9B69     		ldr	r3, [r3, #24]
+ 158 001a 02A9     		add	r1, sp, #8
+ 159 001c 03F48053 		and	r3, r3, #4096
+ 160 0020 0193     		str	r3, [sp, #4]
+ 161 0022 019B     		ldr	r3, [sp, #4]
+ 162 0024 A023     		movs	r3, #160
+ 163 0026 0293     		str	r3, [sp, #8]
+ 164 0028 0223     		movs	r3, #2
+ 165 002a 0393     		str	r3, [sp, #12]
+ 166 002c 0323     		movs	r3, #3
+ 167 002e 0593     		str	r3, [sp, #20]
+ 168 0030 FFF7FEFF 		bl	HAL_GPIO_Init
+ 169 0034 4023     		movs	r3, #64
+ 170 0036 0293     		str	r3, [sp, #8]
+ 171 0038 0548     		ldr	r0, .L15+4
+ 172 003a 0023     		movs	r3, #0
+ 173 003c 02A9     		add	r1, sp, #8
+ 174 003e 0393     		str	r3, [sp, #12]
+ 175 0040 0493     		str	r3, [sp, #16]
+ 176 0042 FFF7FEFF 		bl	HAL_GPIO_Init
+ 177              	.L13:
+ 178 0046 07B0     		add	sp, sp, #28
+ARM GAS  /tmp/cckGrNPe.s 			page 4
+
+
+ 179              		@ sp needed
+ 180 0048 5DF804FB 		ldr	pc, [sp], #4
+ 181              	.L16:
+ 182              		.align	2
+ 183              	.L15:
+ 184 004c 00300140 		.word	1073819648
+ 185 0050 00080140 		.word	1073809408
+ 187              		.section	.text.HAL_SPI_MspDeInit,"ax",%progbits
+ 188              		.align	1
+ 189              		.global	HAL_SPI_MspDeInit
+ 190              		.thumb
+ 191              		.thumb_func
+ 193              	HAL_SPI_MspDeInit:
+ 194              		@ args = 0, pretend = 0, frame = 0
+ 195              		@ frame_needed = 0, uses_anonymous_args = 0
+ 196              		@ link register save eliminated.
+ 197 0000 0268     		ldr	r2, [r0]
+ 198 0002 064B     		ldr	r3, .L19
+ 199 0004 9A42     		cmp	r2, r3
+ 200 0006 08D1     		bne	.L17
+ 201 0008 054A     		ldr	r2, .L19+4
+ 202 000a 0648     		ldr	r0, .L19+8
+ 203 000c 9369     		ldr	r3, [r2, #24]
+ 204 000e E021     		movs	r1, #224
+ 205 0010 23F48053 		bic	r3, r3, #4096
+ 206 0014 9361     		str	r3, [r2, #24]
+ 207 0016 FFF7FEBF 		b	HAL_GPIO_DeInit
+ 208              	.L17:
+ 209 001a 7047     		bx	lr
+ 210              	.L20:
+ 211              		.align	2
+ 212              	.L19:
+ 213 001c 00300140 		.word	1073819648
+ 214 0020 00100240 		.word	1073876992
+ 215 0024 00080140 		.word	1073809408
+ 217              		.ident	"GCC: (15:4.9.3+svn231177-1) 4.9.3 20150529 (prerelease)"
+ARM GAS  /tmp/cckGrNPe.s 			page 5
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 stm32f1xx_hal_msp.c
+     /tmp/cckGrNPe.s:16     .text.HAL_MspInit:0000000000000000 $t
+     /tmp/cckGrNPe.s:21     .text.HAL_MspInit:0000000000000000 HAL_MspInit
+     /tmp/cckGrNPe.s:74     .text.HAL_MspInit:0000000000000084 $d
+     /tmp/cckGrNPe.s:78     .text.HAL_RTC_MspInit:0000000000000000 $t
+     /tmp/cckGrNPe.s:83     .text.HAL_RTC_MspInit:0000000000000000 HAL_RTC_MspInit
+     /tmp/cckGrNPe.s:110    .text.HAL_RTC_MspInit:0000000000000030 $d
+     /tmp/cckGrNPe.s:115    .text.HAL_RTC_MspDeInit:0000000000000000 $t
+     /tmp/cckGrNPe.s:120    .text.HAL_RTC_MspDeInit:0000000000000000 HAL_RTC_MspDeInit
+     /tmp/cckGrNPe.s:135    .text.HAL_RTC_MspDeInit:0000000000000010 $d
+     /tmp/cckGrNPe.s:139    .text.HAL_SPI_MspInit:0000000000000000 $t
+     /tmp/cckGrNPe.s:144    .text.HAL_SPI_MspInit:0000000000000000 HAL_SPI_MspInit
+     /tmp/cckGrNPe.s:184    .text.HAL_SPI_MspInit:000000000000004c $d
+     /tmp/cckGrNPe.s:188    .text.HAL_SPI_MspDeInit:0000000000000000 $t
+     /tmp/cckGrNPe.s:193    .text.HAL_SPI_MspDeInit:0000000000000000 HAL_SPI_MspDeInit
+     /tmp/cckGrNPe.s:213    .text.HAL_SPI_MspDeInit:000000000000001c $d
+
+UNDEFINED SYMBOLS
+HAL_NVIC_SetPriorityGrouping
+HAL_NVIC_SetPriority
+HAL_PWR_EnableBkUpAccess
+HAL_GPIO_Init
+HAL_GPIO_DeInit

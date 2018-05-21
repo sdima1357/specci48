@@ -1,0 +1,245 @@
+ARM GAS  /tmp/cckWoYML.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"sd_diskio.c"
+  15              		.section	.text.SD_initialize,"ax",%progbits
+  16              		.align	1
+  17              		.global	SD_initialize
+  18              		.thumb
+  19              		.thumb_func
+  21              	SD_initialize:
+  22              		@ args = 0, pretend = 0, frame = 0
+  23              		@ frame_needed = 0, uses_anonymous_args = 0
+  24 0000 10B5     		push	{r4, lr}
+  25 0002 064C     		ldr	r4, .L4
+  26 0004 0123     		movs	r3, #1
+  27 0006 2370     		strb	r3, [r4]
+  28 0008 FFF7FEFF 		bl	BSP_SD_Init
+  29 000c 2346     		mov	r3, r4
+  30 000e 18B9     		cbnz	r0, .L2
+  31 0010 2278     		ldrb	r2, [r4]	@ zero_extendqisi2
+  32 0012 02F0FE02 		and	r2, r2, #254
+  33 0016 2270     		strb	r2, [r4]
+  34              	.L2:
+  35 0018 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+  36 001a 10BD     		pop	{r4, pc}
+  37              	.L5:
+  38              		.align	2
+  39              	.L4:
+  40 001c 00000000 		.word	.LANCHOR0
+  42              		.section	.text.SD_status,"ax",%progbits
+  43              		.align	1
+  44              		.global	SD_status
+  45              		.thumb
+  46              		.thumb_func
+  48              	SD_status:
+  49              		@ args = 0, pretend = 0, frame = 0
+  50              		@ frame_needed = 0, uses_anonymous_args = 0
+  51 0000 10B5     		push	{r4, lr}
+  52 0002 064C     		ldr	r4, .L8
+  53 0004 0123     		movs	r3, #1
+  54 0006 2370     		strb	r3, [r4]
+  55 0008 FFF7FEFF 		bl	BSP_SD_GetCardState
+  56 000c 2346     		mov	r3, r4
+  57 000e 18B9     		cbnz	r0, .L7
+  58 0010 2278     		ldrb	r2, [r4]	@ zero_extendqisi2
+  59 0012 02F0FE02 		and	r2, r2, #254
+  60 0016 2270     		strb	r2, [r4]
+ARM GAS  /tmp/cckWoYML.s 			page 2
+
+
+  61              	.L7:
+  62 0018 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+  63 001a 10BD     		pop	{r4, pc}
+  64              	.L9:
+  65              		.align	2
+  66              	.L8:
+  67 001c 00000000 		.word	.LANCHOR0
+  69              		.section	.text.SD_read,"ax",%progbits
+  70              		.align	1
+  71              		.global	SD_read
+  72              		.thumb
+  73              		.thumb_func
+  75              	SD_read:
+  76              		@ args = 0, pretend = 0, frame = 0
+  77              		@ frame_needed = 0, uses_anonymous_args = 0
+  78 0000 10B5     		push	{r4, lr}
+  79 0002 0846     		mov	r0, r1
+  80 0004 1146     		mov	r1, r2
+  81 0006 1A46     		mov	r2, r3
+  82 0008 064B     		ldr	r3, .L20
+  83 000a FFF7FEFF 		bl	BSP_SD_ReadBlocks
+  84 000e 08B1     		cbz	r0, .L15
+  85              	.L13:
+  86 0010 0120     		movs	r0, #1
+  87 0012 10BD     		pop	{r4, pc}
+  88              	.L15:
+  89 0014 044C     		ldr	r4, .L20+4
+  90              	.L11:
+  91 0016 FFF7FEFF 		bl	BSP_SD_GetCardState
+  92 001a 10B1     		cbz	r0, .L19
+  93 001c 013C     		subs	r4, r4, #1
+  94 001e FAD1     		bne	.L11
+  95 0020 F6E7     		b	.L13
+  96              	.L19:
+  97 0022 10BD     		pop	{r4, pc}
+  98              	.L21:
+  99              		.align	2
+ 100              	.L20:
+ 101 0024 00E1F505 		.word	100000000
+ 102 0028 A1860100 		.word	100001
+ 104              		.section	.text.SD_write,"ax",%progbits
+ 105              		.align	1
+ 106              		.global	SD_write
+ 107              		.thumb
+ 108              		.thumb_func
+ 110              	SD_write:
+ 111              		@ args = 0, pretend = 0, frame = 0
+ 112              		@ frame_needed = 0, uses_anonymous_args = 0
+ 113 0000 10B5     		push	{r4, lr}
+ 114 0002 0846     		mov	r0, r1
+ 115 0004 1146     		mov	r1, r2
+ 116 0006 1A46     		mov	r2, r3
+ 117 0008 064B     		ldr	r3, .L32
+ 118 000a FFF7FEFF 		bl	BSP_SD_WriteBlocks
+ 119 000e 08B1     		cbz	r0, .L27
+ 120              	.L25:
+ 121 0010 0120     		movs	r0, #1
+ARM GAS  /tmp/cckWoYML.s 			page 3
+
+
+ 122 0012 10BD     		pop	{r4, pc}
+ 123              	.L27:
+ 124 0014 044C     		ldr	r4, .L32+4
+ 125              	.L23:
+ 126 0016 FFF7FEFF 		bl	BSP_SD_GetCardState
+ 127 001a 10B1     		cbz	r0, .L31
+ 128 001c 013C     		subs	r4, r4, #1
+ 129 001e FAD1     		bne	.L23
+ 130 0020 F6E7     		b	.L25
+ 131              	.L31:
+ 132 0022 10BD     		pop	{r4, pc}
+ 133              	.L33:
+ 134              		.align	2
+ 135              	.L32:
+ 136 0024 00E1F505 		.word	100000000
+ 137 0028 A1860100 		.word	100001
+ 139              		.section	.text.SD_ioctl,"ax",%progbits
+ 140              		.align	1
+ 141              		.global	SD_ioctl
+ 142              		.thumb
+ 143              		.thumb_func
+ 145              	SD_ioctl:
+ 146              		@ args = 0, pretend = 0, frame = 72
+ 147              		@ frame_needed = 0, uses_anonymous_args = 0
+ 148 0000 10B5     		push	{r4, lr}
+ 149 0002 114B     		ldr	r3, .L45
+ 150 0004 92B0     		sub	sp, sp, #72
+ 151 0006 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 152 0008 1446     		mov	r4, r2
+ 153 000a DB07     		lsls	r3, r3, #31
+ 154 000c 19D4     		bmi	.L42
+ 155 000e 0329     		cmp	r1, #3
+ 156 0010 03D8     		bhi	.L36
+ 157 0012 DFE801F0 		tbb	[pc, r1]
+ 158              	.L38:
+ 159 0016 14       		.byte	(.L43-.L38)/2
+ 160 0017 04       		.byte	(.L39-.L38)/2
+ 161 0018 09       		.byte	(.L40-.L38)/2
+ 162 0019 0F       		.byte	(.L41-.L38)/2
+ 163              		.p2align 1
+ 164              	.L36:
+ 165 001a 0420     		movs	r0, #4
+ 166 001c 12E0     		b	.L35
+ 167              	.L39:
+ 168 001e 6846     		mov	r0, sp
+ 169 0020 FFF7FEFF 		bl	BSP_SD_GetCardInfo
+ 170 0024 0F9B     		ldr	r3, [sp, #60]
+ 171 0026 09E0     		b	.L44
+ 172              	.L40:
+ 173 0028 6846     		mov	r0, sp
+ 174 002a FFF7FEFF 		bl	BSP_SD_GetCardInfo
+ 175 002e 109B     		ldr	r3, [sp, #64]
+ 176 0030 2380     		strh	r3, [r4]	@ movhi
+ 177 0032 04E0     		b	.L43
+ 178              	.L41:
+ 179 0034 6846     		mov	r0, sp
+ 180 0036 FFF7FEFF 		bl	BSP_SD_GetCardInfo
+ARM GAS  /tmp/cckWoYML.s 			page 4
+
+
+ 181 003a 109B     		ldr	r3, [sp, #64]
+ 182              	.L44:
+ 183 003c 2360     		str	r3, [r4]
+ 184              	.L43:
+ 185 003e 0020     		movs	r0, #0
+ 186 0040 00E0     		b	.L35
+ 187              	.L42:
+ 188 0042 0320     		movs	r0, #3
+ 189              	.L35:
+ 190 0044 12B0     		add	sp, sp, #72
+ 191              		@ sp needed
+ 192 0046 10BD     		pop	{r4, pc}
+ 193              	.L46:
+ 194              		.align	2
+ 195              	.L45:
+ 196 0048 00000000 		.word	.LANCHOR0
+ 198              		.global	SD_Driver
+ 199              		.section	.data.Stat,"aw",%progbits
+ 200              		.set	.LANCHOR0,. + 0
+ 203              	Stat:
+ 204 0000 01       		.byte	1
+ 205              		.section	.rodata.SD_Driver,"a",%progbits
+ 206              		.align	2
+ 209              	SD_Driver:
+ 210 0000 00000000 		.word	SD_initialize
+ 211 0004 00000000 		.word	SD_status
+ 212 0008 00000000 		.word	SD_read
+ 213 000c 00000000 		.word	SD_write
+ 214 0010 00000000 		.word	SD_ioctl
+ 215              		.ident	"GCC: (15:4.9.3+svn231177-1) 4.9.3 20150529 (prerelease)"
+ARM GAS  /tmp/cckWoYML.s 			page 5
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 sd_diskio.c
+     /tmp/cckWoYML.s:16     .text.SD_initialize:0000000000000000 $t
+     /tmp/cckWoYML.s:21     .text.SD_initialize:0000000000000000 SD_initialize
+     /tmp/cckWoYML.s:40     .text.SD_initialize:000000000000001c $d
+     /tmp/cckWoYML.s:43     .text.SD_status:0000000000000000 $t
+     /tmp/cckWoYML.s:48     .text.SD_status:0000000000000000 SD_status
+     /tmp/cckWoYML.s:67     .text.SD_status:000000000000001c $d
+     /tmp/cckWoYML.s:70     .text.SD_read:0000000000000000 $t
+     /tmp/cckWoYML.s:75     .text.SD_read:0000000000000000 SD_read
+     /tmp/cckWoYML.s:101    .text.SD_read:0000000000000024 $d
+     /tmp/cckWoYML.s:105    .text.SD_write:0000000000000000 $t
+     /tmp/cckWoYML.s:110    .text.SD_write:0000000000000000 SD_write
+     /tmp/cckWoYML.s:136    .text.SD_write:0000000000000024 $d
+     /tmp/cckWoYML.s:140    .text.SD_ioctl:0000000000000000 $t
+     /tmp/cckWoYML.s:145    .text.SD_ioctl:0000000000000000 SD_ioctl
+     /tmp/cckWoYML.s:159    .text.SD_ioctl:0000000000000016 $d
+     /tmp/cckWoYML.s:163    .text.SD_ioctl:000000000000001a $t
+     /tmp/cckWoYML.s:196    .text.SD_ioctl:0000000000000048 $d
+     /tmp/cckWoYML.s:209    .rodata.SD_Driver:0000000000000000 SD_Driver
+     /tmp/cckWoYML.s:203    .data.Stat:0000000000000000 Stat
+     /tmp/cckWoYML.s:206    .rodata.SD_Driver:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+BSP_SD_Init
+BSP_SD_GetCardState
+BSP_SD_ReadBlocks
+BSP_SD_WriteBlocks
+BSP_SD_GetCardInfo

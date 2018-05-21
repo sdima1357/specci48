@@ -1,0 +1,151 @@
+ARM GAS  /tmp/ccKTofM1.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"stm32f1xx_it.c"
+  15              		.section	.text.NMI_Handler,"ax",%progbits
+  16              		.align	1
+  17              		.global	NMI_Handler
+  18              		.thumb
+  19              		.thumb_func
+  21              	NMI_Handler:
+  22              		@ args = 0, pretend = 0, frame = 0
+  23              		@ frame_needed = 0, uses_anonymous_args = 0
+  24              		@ link register save eliminated.
+  25 0000 7047     		bx	lr
+  27              		.section	.text.HardFault_Handler,"ax",%progbits
+  28              		.align	1
+  29              		.global	HardFault_Handler
+  30              		.thumb
+  31              		.thumb_func
+  33              	HardFault_Handler:
+  34              		@ Volatile: function does not return.
+  35              		@ args = 0, pretend = 0, frame = 0
+  36              		@ frame_needed = 0, uses_anonymous_args = 0
+  37              		@ link register save eliminated.
+  38              	.L3:
+  39 0000 FEE7     		b	.L3
+  41              		.section	.text.MemManage_Handler,"ax",%progbits
+  42              		.align	1
+  43              		.global	MemManage_Handler
+  44              		.thumb
+  45              		.thumb_func
+  47              	MemManage_Handler:
+  48              		@ Volatile: function does not return.
+  49              		@ args = 0, pretend = 0, frame = 0
+  50              		@ frame_needed = 0, uses_anonymous_args = 0
+  51              		@ link register save eliminated.
+  52              	.L5:
+  53 0000 FEE7     		b	.L5
+  55              		.section	.text.BusFault_Handler,"ax",%progbits
+  56              		.align	1
+  57              		.global	BusFault_Handler
+  58              		.thumb
+  59              		.thumb_func
+  61              	BusFault_Handler:
+  62              		@ Volatile: function does not return.
+  63              		@ args = 0, pretend = 0, frame = 0
+  64              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  /tmp/ccKTofM1.s 			page 2
+
+
+  65              		@ link register save eliminated.
+  66              	.L7:
+  67 0000 FEE7     		b	.L7
+  69              		.section	.text.UsageFault_Handler,"ax",%progbits
+  70              		.align	1
+  71              		.global	UsageFault_Handler
+  72              		.thumb
+  73              		.thumb_func
+  75              	UsageFault_Handler:
+  76              		@ Volatile: function does not return.
+  77              		@ args = 0, pretend = 0, frame = 0
+  78              		@ frame_needed = 0, uses_anonymous_args = 0
+  79              		@ link register save eliminated.
+  80              	.L9:
+  81 0000 FEE7     		b	.L9
+  83              		.section	.text.SVC_Handler,"ax",%progbits
+  84              		.align	1
+  85              		.global	SVC_Handler
+  86              		.thumb
+  87              		.thumb_func
+  89              	SVC_Handler:
+  90              		@ args = 0, pretend = 0, frame = 0
+  91              		@ frame_needed = 0, uses_anonymous_args = 0
+  92              		@ link register save eliminated.
+  93 0000 7047     		bx	lr
+  95              		.section	.text.DebugMon_Handler,"ax",%progbits
+  96              		.align	1
+  97              		.global	DebugMon_Handler
+  98              		.thumb
+  99              		.thumb_func
+ 101              	DebugMon_Handler:
+ 102              		@ args = 0, pretend = 0, frame = 0
+ 103              		@ frame_needed = 0, uses_anonymous_args = 0
+ 104              		@ link register save eliminated.
+ 105 0000 7047     		bx	lr
+ 107              		.section	.text.PendSV_Handler,"ax",%progbits
+ 108              		.align	1
+ 109              		.global	PendSV_Handler
+ 110              		.thumb
+ 111              		.thumb_func
+ 113              	PendSV_Handler:
+ 114              		@ args = 0, pretend = 0, frame = 0
+ 115              		@ frame_needed = 0, uses_anonymous_args = 0
+ 116              		@ link register save eliminated.
+ 117 0000 7047     		bx	lr
+ 119              		.section	.text.SysTick_Handler,"ax",%progbits
+ 120              		.align	1
+ 121              		.global	SysTick_Handler
+ 122              		.thumb
+ 123              		.thumb_func
+ 125              	SysTick_Handler:
+ 126              		@ args = 0, pretend = 0, frame = 0
+ 127              		@ frame_needed = 0, uses_anonymous_args = 0
+ 128 0000 08B5     		push	{r3, lr}
+ 129 0002 FFF7FEFF 		bl	HAL_IncTick
+ 130 0006 BDE80840 		pop	{r3, lr}
+ 131 000a FFF7FEBF 		b	HAL_SYSTICK_IRQHandler
+ARM GAS  /tmp/ccKTofM1.s 			page 3
+
+
+ 133              		.ident	"GCC: (15:4.9.3+svn231177-1) 4.9.3 20150529 (prerelease)"
+ARM GAS  /tmp/ccKTofM1.s 			page 4
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 stm32f1xx_it.c
+     /tmp/ccKTofM1.s:16     .text.NMI_Handler:0000000000000000 $t
+     /tmp/ccKTofM1.s:21     .text.NMI_Handler:0000000000000000 NMI_Handler
+     /tmp/ccKTofM1.s:28     .text.HardFault_Handler:0000000000000000 $t
+     /tmp/ccKTofM1.s:33     .text.HardFault_Handler:0000000000000000 HardFault_Handler
+     /tmp/ccKTofM1.s:42     .text.MemManage_Handler:0000000000000000 $t
+     /tmp/ccKTofM1.s:47     .text.MemManage_Handler:0000000000000000 MemManage_Handler
+     /tmp/ccKTofM1.s:56     .text.BusFault_Handler:0000000000000000 $t
+     /tmp/ccKTofM1.s:61     .text.BusFault_Handler:0000000000000000 BusFault_Handler
+     /tmp/ccKTofM1.s:70     .text.UsageFault_Handler:0000000000000000 $t
+     /tmp/ccKTofM1.s:75     .text.UsageFault_Handler:0000000000000000 UsageFault_Handler
+     /tmp/ccKTofM1.s:84     .text.SVC_Handler:0000000000000000 $t
+     /tmp/ccKTofM1.s:89     .text.SVC_Handler:0000000000000000 SVC_Handler
+     /tmp/ccKTofM1.s:96     .text.DebugMon_Handler:0000000000000000 $t
+     /tmp/ccKTofM1.s:101    .text.DebugMon_Handler:0000000000000000 DebugMon_Handler
+     /tmp/ccKTofM1.s:108    .text.PendSV_Handler:0000000000000000 $t
+     /tmp/ccKTofM1.s:113    .text.PendSV_Handler:0000000000000000 PendSV_Handler
+     /tmp/ccKTofM1.s:120    .text.SysTick_Handler:0000000000000000 $t
+     /tmp/ccKTofM1.s:125    .text.SysTick_Handler:0000000000000000 SysTick_Handler
+
+UNDEFINED SYMBOLS
+HAL_IncTick
+HAL_SYSTICK_IRQHandler

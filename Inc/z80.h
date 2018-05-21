@@ -1,6 +1,13 @@
-#include "stm32f4xx.h"
 #ifndef Z80_H
 #define Z80_H
+#include "stm32f1xx_hal.h"
+typedef uint32_t u32;
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef int32_t s32;
+typedef int8_t s8;
+typedef int16_t s16;
+
 typedef union 
 {
 	u8 r[21];//C, B, E, D, L, H, F, A, IXL, IXH, IYL, IYH, SPL, SPH, PCL, PCH, MEMPTRL, MEMPTRH, I, R, R7

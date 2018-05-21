@@ -1,0 +1,92 @@
+ARM GAS  /tmp/ccwUPLFG.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"stm32f1xx_hal_spi_ex.c"
+  15              		.section	.text.HAL_SPI_Init,"ax",%progbits
+  16              		.align	1
+  17              		.global	HAL_SPI_Init
+  18              		.thumb
+  19              		.thumb_func
+  21              	HAL_SPI_Init:
+  22              		@ args = 0, pretend = 0, frame = 0
+  23              		@ frame_needed = 0, uses_anonymous_args = 0
+  24 0000 10B5     		push	{r4, lr}
+  25 0002 0446     		mov	r4, r0
+  26 0004 0028     		cmp	r0, #0
+  27 0006 34D0     		beq	.L4
+  28 0008 0023     		movs	r3, #0
+  29 000a 8362     		str	r3, [r0, #40]
+  30 000c 90F85130 		ldrb	r3, [r0, #81]	@ zero_extendqisi2
+  31 0010 0BB9     		cbnz	r3, .L3
+  32 0012 FFF7FEFF 		bl	HAL_SPI_MspInit
+  33              	.L3:
+  34 0016 6168     		ldr	r1, [r4, #4]
+  35 0018 A068     		ldr	r0, [r4, #8]
+  36 001a 0223     		movs	r3, #2
+  37 001c 0843     		orrs	r0, r0, r1
+  38 001e E168     		ldr	r1, [r4, #12]
+  39 0020 84F85130 		strb	r3, [r4, #81]
+  40 0024 0843     		orrs	r0, r0, r1
+  41 0026 2169     		ldr	r1, [r4, #16]
+  42 0028 2368     		ldr	r3, [r4]
+  43 002a 0843     		orrs	r0, r0, r1
+  44 002c 6169     		ldr	r1, [r4, #20]
+  45 002e 1A68     		ldr	r2, [r3]
+  46 0030 0843     		orrs	r0, r0, r1
+  47 0032 E169     		ldr	r1, [r4, #28]
+  48 0034 22F04002 		bic	r2, r2, #64
+  49 0038 0843     		orrs	r0, r0, r1
+  50 003a 216A     		ldr	r1, [r4, #32]
+  51 003c 1A60     		str	r2, [r3]
+  52 003e 0843     		orrs	r0, r0, r1
+  53 0040 A269     		ldr	r2, [r4, #24]
+  54 0042 A16A     		ldr	r1, [r4, #40]
+  55 0044 0843     		orrs	r0, r0, r1
+  56 0046 02F40071 		and	r1, r2, #512
+  57 004a 0143     		orrs	r1, r1, r0
+  58 004c 1960     		str	r1, [r3]
+ARM GAS  /tmp/ccwUPLFG.s 			page 2
+
+
+  59 004e 120C     		lsrs	r2, r2, #16
+  60 0050 616A     		ldr	r1, [r4, #36]
+  61 0052 02F00402 		and	r2, r2, #4
+  62 0056 0A43     		orrs	r2, r2, r1
+  63 0058 5A60     		str	r2, [r3, #4]
+  64 005a E26A     		ldr	r2, [r4, #44]
+  65 005c 0020     		movs	r0, #0
+  66 005e 1A61     		str	r2, [r3, #16]
+  67 0060 DA69     		ldr	r2, [r3, #28]
+  68 0062 22F40062 		bic	r2, r2, #2048
+  69 0066 DA61     		str	r2, [r3, #28]
+  70 0068 0123     		movs	r3, #1
+  71 006a 6065     		str	r0, [r4, #84]
+  72 006c 84F85130 		strb	r3, [r4, #81]
+  73 0070 10BD     		pop	{r4, pc}
+  74              	.L4:
+  75 0072 0120     		movs	r0, #1
+  76 0074 10BD     		pop	{r4, pc}
+  78              		.ident	"GCC: (15:4.9.3+svn231177-1) 4.9.3 20150529 (prerelease)"
+ARM GAS  /tmp/ccwUPLFG.s 			page 3
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 stm32f1xx_hal_spi_ex.c
+     /tmp/ccwUPLFG.s:16     .text.HAL_SPI_Init:0000000000000000 $t
+     /tmp/ccwUPLFG.s:21     .text.HAL_SPI_Init:0000000000000000 HAL_SPI_Init
+
+UNDEFINED SYMBOLS
+HAL_SPI_MspInit

@@ -1,4 +1,3 @@
-#include "stm32f4xx.h"
 #include "main_ROM.h"
 
 const u8 ROM[16384]=

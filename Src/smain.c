@@ -428,7 +428,7 @@ struct block
 	//~ uint8_t  flags; // 0x200 - exist mask  0x400 modified by write 	//~ uint8_t  line;  // line - pointer
 }  Blocks[BLOCKS];
 
-#define NUM_LINES (64+16+8)
+#define NUM_LINES (96+8)
 
 struct cacheLinePool
 {

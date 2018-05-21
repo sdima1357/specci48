@@ -330,23 +330,3 @@ default:
 	T_WAIT_UNTIL(4);
 }
 }
-/*
-static void (*opcode_ed [0x100])(void)={
-	noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   ,
-	noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   ,
-	noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   ,
-	noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   ,
-	op_ED_0x40, op_ED_0x41, op_ED_0x42, op_ED_0x43, op_ED_0x44, op_ED_0x45, op_ED_0x46, op_ED_0x47, op_ED_0x48, op_ED_0x49, op_ED_0x4a, op_ED_0x4b, op_ED_0x4c, op_ED_0x4d, op_ED_0x4e, op_ED_0x4f,
-	op_ED_0x50, op_ED_0x51, op_ED_0x52, op_ED_0x53, op_ED_0x54, op_ED_0x55, op_ED_0x56, op_ED_0x57, op_ED_0x58, op_ED_0x59, op_ED_0x5a, op_ED_0x5b, op_ED_0x5c, op_ED_0x5d, op_ED_0x5e, op_ED_0x5f,
-	op_ED_0x60, op_ED_0x61, op_ED_0x62, op_ED_0x63, op_ED_0x64, op_ED_0x65, op_ED_0x66, op_ED_0x67, op_ED_0x68, op_ED_0x69, op_ED_0x6a, op_ED_0x6b, op_ED_0x6c, op_ED_0x6d, op_ED_0x6e, op_ED_0x6f,
-	op_ED_0x70, op_ED_0x71, op_ED_0x72, op_ED_0x73, op_ED_0x74, op_ED_0x75, op_ED_0x76, noni_ED   , op_ED_0x78, op_ED_0x79, op_ED_0x7a, op_ED_0x7b, op_ED_0x7c, op_ED_0x7d, op_ED_0x7e, noni_ED   ,
-	noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   ,
-	noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   ,
-	op_ED_0xa0, op_ED_0xa1, op_ED_0xa2, op_ED_0xa3, noni_ED   , noni_ED   , noni_ED   , noni_ED   , op_ED_0xa8, op_ED_0xa9, op_ED_0xaa, op_ED_0xab, noni_ED   , noni_ED   , noni_ED   , noni_ED   ,
-	op_ED_0xb0, op_ED_0xb1, op_ED_0xb2, op_ED_0xb3, noni_ED   , noni_ED   , noni_ED   , noni_ED   , op_ED_0xb8, op_ED_0xb9, op_ED_0xba, op_ED_0xbb, noni_ED   , noni_ED   , noni_ED   , noni_ED   ,
-	noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   ,
-	noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   ,
-	noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   ,
-	noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED   , noni_ED
-};
-*/

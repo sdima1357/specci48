@@ -30,11 +30,11 @@ typedef union
 //~ }ZINTRFlags;
 typedef struct
 {
-	unsigned  r_IM;
-	unsigned r_IFF1;
-	unsigned r_IFF2;
-	unsigned r_halt;
-	unsigned r_screen_IRQ;
+	u8  r_IM;
+	u8 r_IFF1;
+	u8 r_IFF2;
+	u8 r_halt;
+	u8 r_screen_IRQ;
 }ZINTRFlags;
 
 extern ZReg reg;

@@ -614,23 +614,3 @@ default :
 break;
 }
 }
-/*
-static void (*opcode_dd[0x100])(void)={
-	noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0x09, noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   ,
-	noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0x19, noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   ,
-	noni_DD   , op_DD_0x21, op_DD_0x22, op_DD_0x23, op_DD_0x24, op_DD_0x25, op_DD_0x26, noni_DD   , noni_DD   , op_DD_0x29, op_DD_0x2a, op_DD_0x2b, op_DD_0x2c, op_DD_0x2d, op_DD_0x2e, noni_DD   ,
-	noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0x34, op_DD_0x35, op_DD_0x36, noni_DD   , noni_DD   , op_DD_0x39, noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   ,
-	noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0x44, op_DD_0x45, op_DD_0x46, noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0x4c, op_DD_0x4d, op_DD_0x4e, noni_DD   ,
-	noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0x54, op_DD_0x55, op_DD_0x56, noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0x5c, op_DD_0x5d, op_DD_0x5e, noni_DD   ,
-	op_DD_0x60, op_DD_0x61, op_DD_0x62, op_DD_0x63, op_DD_0x64, op_DD_0x65, op_DD_0x66, op_DD_0x67, op_DD_0x68, op_DD_0x69, op_DD_0x6a, op_DD_0x6b, op_DD_0x6c, op_DD_0x6d, op_DD_0x6e, op_DD_0x6f,
-	op_DD_0x70, op_DD_0x71, op_DD_0x72, op_DD_0x73, op_DD_0x74, op_DD_0x75, noni_DD   , op_DD_0x77, noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0x7c, op_DD_0x7d, op_DD_0x7e, noni_DD   ,
-	noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0x84, op_DD_0x85, op_DD_0x86, noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0x8c, op_DD_0x8d, op_DD_0x8e, noni_DD   ,
-	noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0x94, op_DD_0x95, op_DD_0x96, noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0x9c, op_DD_0x9d, op_DD_0x9e, noni_DD   ,
-	noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0xa4, op_DD_0xa5, op_DD_0xa6, noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0xac, op_DD_0xad, op_DD_0xae, noni_DD   ,
-	noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0xb4, op_DD_0xb5, op_DD_0xb6, noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0xbc, op_DD_0xbd, op_DD_0xbe, noni_DD   ,
-	noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   ,
-	noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   ,
-	noni_DD   , op_DD_0xe1, noni_DD   , op_DD_0xe3, noni_DD   , op_DD_0xe5, noni_DD   , noni_DD   , noni_DD   , op_DD_0xe9, noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   ,
-	noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , op_DD_0xf9, noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD   , noni_DD
-};
-*/

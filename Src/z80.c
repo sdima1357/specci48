@@ -7,7 +7,7 @@ int32_t interrupts_enabled_at;
 /*include z80 registr*/
 ZReg 		reg;
 ZReg_Shadow 	reg_;
-ZINTRFlags      	IFlags;
+ZINTRFlags      IFlags;
 
 union
 {

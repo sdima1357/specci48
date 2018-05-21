@@ -1,6 +1,6 @@
-//~ void opcode_dd(u8 bt)
+//~ void opcode_dd(u8 opcode)
 {
-switch (opcode) 
+switch (prefix) 
 {
 /*ADD IX, BC*/
 case 0x09:
@@ -567,7 +567,15 @@ case 0xbe:
 	T_WAIT_UNTIL(15);
 break;
 
-
+case 0xcb:
+	d.u=NEXT_BYTE;
+	prefix=NEXT_BYTE;
+	MEMPTR=(IX+d.s);
+	temp8=READ_BYTE(IX+d.s);
+#include "opcode_ddcb.c"
+	WRITE_BYTE(IX+d.s, temp8);
+	m_cycle+=19;
+	break;
 /*POP IX*/
 case 0xe1:
 	POP(IX);

@@ -12,13 +12,34 @@ typedef union
 	u8 r[8];//C, B, E, D, L, H, F, A
 	u16	rp[4];//BC, DE, HL, AF
 }ZReg_Shadow;
+
+//~ typedef struct
+//~ {
+	//~ unsigned  r_IM:2;
+	//~ unsigned r_IFF1:1;
+	//~ unsigned r_IFF2:1;
+	//~ unsigned r_halt:1;
+	//~ unsigned r_screen_IRQ:1;
+//~ }ZINTRFlags;
+typedef struct
+{
+	unsigned  r_IM;
+	unsigned r_IFF1;
+	unsigned r_IFF2;
+	unsigned r_halt;
+	unsigned r_screen_IRQ;
+}ZINTRFlags;
+
 extern ZReg reg;
 extern ZReg_Shadow reg_;
-extern u8 IM;
-extern u8 IFF1;
-extern u8 IFF2;
-extern u8 halt;
-extern u8 screen_IRQ;
+extern ZINTRFlags IFlags;
+#define   IM    IFlags.r_IM
+#define   IFF1 IFlags.r_IFF1
+#define   IFF2 IFlags.r_IFF2
+#define   halt  IFlags.r_halt
+#define   screen_IRQ  IFlags.r_screen_IRQ
+
+
 
 /*macros used for accessing the registers*/
 #define A		reg.r[7]

@@ -5,7 +5,8 @@
 /* USER CODE BEGIN Includes */
 #include "commands.h"
 #include "core.h"
-#include "5x5_font.h"
+//~ #include "5x5_font.h"
+
 #include "stm32_adafruit_sd.h"
 #include "fatfs.h"
 #include "ff_gen_drv.h"
@@ -22,14 +23,18 @@ void  SPIx_Error1 (void);
 #include <stdlib.h>
 #include <string.h>
 #include "main_ROM.h"
+#ifdef CHECK_SUMM
 extern int32_t checkerror;
 extern int32_t checkdeinit;
+int16_t  missSaveMemory = 0;
+int16_t  missReadMemory = 0;
+#endif
 uint16_t 		border;
 extern int32_t tstates;
 extern int32_t interrupts_enabled_at;
 //~ extern u8 	opcode;
-extern u8 	screen_IRQ;
-extern u8 	IM;
+//~ extern u8 	screen_IRQ;
+//~ extern u8 	IM;
 
 //~ void SDCard_Config(void);
 //#define  poke(addr,value) writeByte(addr,value)
@@ -56,7 +61,7 @@ void setAttr()
 		ATTR_RAM_MOD[k] = 0xff;
 	}
 }
-void  poke(uint16_t addr,uint8_t value) 
+inline void  poke(uint16_t addr,uint8_t value) 
 {
 	if(addr<0x4000)
 	{
@@ -114,70 +119,159 @@ u16 peek16(u16 addr)
 	return ((peek(addr+1)<<8)|peek(addr));
 }
 
+#if 0
+//adddress bus:	//8	//9	//10	//11	//12	//13	//14	//15		
+const int keyMatrix[5][8] = {
+	{ CAPS_SHIFT	,'A'	,'Q'	,'1'	,'0'	,'P'	,ENTER	,SPACE		},	// d0
+	{ 'Z'		,'S'	,'W'	,'2'	,'9'	,'O'	,'L'	,SYMB_SHIFT	},	// d1
+	{ 'X'		,'D'	,'E'	,'3'	,'8'	,'I'	,'K'	,'M'		},	// d2
+	{ 'C'		,'F'	,'R'	,'4'	,'7'	,'U'	,'J'	,'N'		},	// d3
+	{ 'V'		,'G'	,'T'	,'5'	,'6'	,'Y'	,'H'	,'B'		}	// d4	
+	};
+
+const int myMatrix[3][4] = {
+	{ 0x40		,' '	,0x10	,' '	},	// d
+	{ ' '		,0x4	,' '	,0x8	},	// d
+	{ 0x20		,' '	,0x1	,0x2	}	// d	
+	};
+
+#endif	
+
+
+int     joystickMode = 0;
+uint8_t	IsPressed[8] = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff};  //public
+uint8_t	Kempston = 0;  //public
+void clearKeys()
+{
+	IsPressed[0]= 0xff;
+	IsPressed[1]= 0xff;
+	IsPressed[2]= 0xff;
+	IsPressed[3]= 0xff;
+	IsPressed[4]= 0xff;
+	IsPressed[5]= 0xff;
+	IsPressed[6]= 0xff;
+	IsPressed[7]= 0xff;
+}
+void setRes(u8 adr,u8 bit,int setRes)
+{
+	if(setRes)
+	{
+		IsPressed[adr-8]|= 1u<<bit;
+	}
+	else
+	{
+		IsPressed[adr-8]&= ~(1u<<bit);
+	}
+		
+}
+u16 keyScan()
+{
+	u16 res =((KEYB_0_GPIO_Port->IDR>>3)&0b1111111);
+	Kempston = 0;
+	if(joystickMode==0) //cursor
+	{
+//cursor joy matrix
+//	up     - 7
+//	down   - 6
+//	left   - 5
+//	right  - 8
+// 	fire 	 0
+		setRes(12,3,res&0x10);
+		setRes(12,4,res&0x1);
+		setRes(11,4,res&0x4);
+		setRes(12,2,res&0x8);
+		
+		setRes(12,0,res&0x20);
+		
+		setRes(15,0,res&0x2);  //space
+	}
+	else if((joystickMode)==1)  
+	{
+//sinclair i1 joy matrix
+//	up     - 9
+//	down   - 8
+//	left   - 6
+//	right  - 7
+// 	fire 	 0
+		setRes(12,1,res&0x10);
+		setRes(12,2,res&0x1);
+		setRes(12,4,res&0x4);
+		setRes(12,3,res&0x8);
+		
+		setRes(12,0,res&0x20);
+		
+		setRes(15,0,res&0x2);  //space
+	}
+	else if((joystickMode)==2)  
+	{
+//sinclair j2 joy matrix
+//	up     - 4
+//	down   - 3
+//	left   - 1
+//	right  - 2
+// 	fire 	 5
+		setRes(11,3,res&0x10);
+		setRes(11,2,res&0x1);
+		setRes(11,0,res&0x4);
+		setRes(11,1,res&0x8);
+		
+		setRes(11,4,res&0x20);
+		
+		setRes(15,0,res&0x2);  //space
+	}
+	else if((joystickMode)==3)       //keyboard
+	{
+//sinclair key matrix
+//	up     - a
+//	down   - z
+//	left   - q
+//	right  - w
+// 	fire 	 space
+		setRes(9,0,res&0x10); //A
+		setRes(8,1,res&0x1);  //Z
+		setRes(10,0,res&0x4);  //q
+		setRes(10,1,res&0x8);  //w
+		
+		setRes(15,0,res&0x20); //space
+		
+		setRes(14,0,res&0x2);  //enter
+	}
+	else if(joystickMode==4)  
+	{
+// kempston joy on port 31
+//	up     - 0x8
+//	down   - 0x4
+//	left   - 0x2
+//	right  - 0x1
+// 	fire 	 0x10
+//
+	u16 ires = res^0b1111111;
+	Kempston = ((ires&0x34)>>1)|((ires&0x1)<<2)|((ires&0x8)>>3);//|0b1110000;
+	}
+	return res^0b1111111;
+}
+	
 u8 in(u16 port)
 {
 	u8 input=0xff;
-	if ((port&0x00FF)==0xFE)//перехват порта 0xFE
-	{
-		uint16_t res =((KEYB_0_GPIO_Port->IDR>>3)&0b1111111);
-		if(!(port&(1<<11)))
-		{
-			if(!(res&0x4))
-			{
-				input &= ~(1u<<4);
-			}
-		}
-		if(!(port&(1<<12)))
-		{
-			if(!(res&0x1))
-			{
-				input &= ~(1u<<4);
-			}
-			if(!(res&0x10))
-			{
-				input &= ~(1u<<3);
-			}
-			if(!(res&0x8))
-			{
-				input &= ~(1u<<2);
-			}
-			if(!(res&0x40))
-			{
-				input &= ~(1u<<1);
-			}
-			if(!(res&0x20))
-			{
-				input &= ~(1u<<0);
-			}
-		}
-		if(!(port&(1<<15)))
-		{
-				if(!(res&0x2)) //space
-				{
-					input &= ~(1u<<0);
-				}
-		}
-		//~ if(res&0x4==0)	// left 5
-		//~ if(res&0x8==0)	// rigth 8
-		//~ if(res&0x10==0)	// up  7
-		//~ if(res&0x1==0)	// down 6
-		//~ if(res&0x20==0)	// zero  0
-#ifdef IN_OUT	
-		GPIOC->ODR&=0x00FF;
-		GPIOC->ODR|=port&0xFF00;
-		
-		for (pa=0; pa<10; pa++)
-		{
-			o++;
-		}
-		input=(GPIOA->IDR&0x1F);
 	
-		if ((ADC1->DR)>6)
+	if ((port&0x00FF)==31)
+	{
+		keyScan();
+		return Kempston;
+	}
+	if ((port&0x00FF)==0xFE)
+	{
+		keyScan();
+		int bit;
+		for(bit = 0;bit<8; bit++)
 		{
-			input|=0x40;
+			if(!(port&(1<<(bit+8))))
+			{
+			   input &= IsPressed[bit];	
+			}
 		}
-#endif		
-			return (input);
+		return (input);
 	}
 	else
 	{
@@ -334,7 +428,7 @@ struct block
 	//~ uint8_t  flags; // 0x200 - exist mask  0x400 modified by write 	//~ uint8_t  line;  // line - pointer
 }  Blocks[BLOCKS];
 
-#define NUM_LINES (100)
+#define NUM_LINES (64+16+8)
 
 struct cacheLinePool
 {
@@ -344,8 +438,6 @@ struct cacheLinePool
 }  Lines[NUM_LINES];
 
 int32_t  timeTick = 0;
-int16_t  missSaveMemory = 0;
-int16_t  missReadMemory = 0;
 
 #define N_SCALE 4
 #define WW  (320/N_SCALE)
@@ -438,7 +530,9 @@ void writeCache64bIfmodified(uint16_t blockNumber,uint8_t * data)
 		uint16_t X = (Blocks[blockNumber].X)*4;
 		uint16_t Y = (Blocks[blockNumber].Y)*4;
 		LCD_Write64bytes(X,Y,data);
+#ifdef CHECK_SUMM		
 		missSaveMemory++;
+#endif		
 	}
 	// just clear flags;
 	Blocks[blockNumber].flag_line = 0; 
@@ -449,7 +543,9 @@ void readCache64b(uint16_t blockNumber,uint8_t * data,uint16_t lineNum)
 	uint16_t Y = (Blocks[blockNumber].Y)*4;
 	
 	LCD_Read64bytes(X,Y,data);
+#ifdef CHECK_SUMM	
 	missReadMemory++;
+#endif	
 	Blocks[blockNumber].flag_line = EXIST|lineNum; 
 }
 
@@ -551,8 +647,11 @@ void memory_test()
 	  }
 	  
 	  LCD_Draw_Text(flag?"OK":"Memory Error",80,130, GREEN, 1, BLACK);
-	  LCD_Draw_Text(printNum16(checkerror),80,140, BLACK, 1,GREEN);
-	  LCD_Draw_Text(printNum16(blockErr),80,150, GREEN, 1, BLACK);
+	  LCD_Draw_Text(printNum16(blockErr),80,140, GREEN, 1, BLACK);
+#ifdef CHECK_SUMM	  
+	  LCD_Draw_Text(printNum16(checkerror),80,150, BLACK, 1,GREEN);
+#endif	  
+	  
 	  //~ if(flag)
 	  //~ {
 		//~ HAL_Delay(100);
@@ -603,7 +702,9 @@ void memory_test()
   //~ LCD_Draw_Text(printNum16(flag),10,10, GREEN, 2, BLACK);
   LCD_Draw_Text(flag?"OK":"Memory Error",80,160, GREEN, 1, BLACK);
   LCD_Draw_Text(printNum16(stop),80,170, GREEN, 1, BLACK);
+#ifdef CHECK_SUMM  
   LCD_Draw_Text(printNum16(checkerror),80,180, BLACK, 1,GREEN);
+#endif  
   //~ if(flag)
   //~ {
 	//~ HAL_Delay(100);
@@ -661,6 +762,7 @@ int readCard()
 	//~ LCD_Draw_Text("drive:",10,0, GREEN, 1, BLACK);
 	//~ LCD_Draw_Text(printNum(num),10,CHAR_HEIGHT, GREEN, 1, BLACK);
 	int numFiles = 0;
+	int snumFiles = 0;
 	int chooseNum = 0;
 	int pass;
 	for(pass=0;pass<2;pass++)
@@ -673,6 +775,11 @@ int readCard()
 			if(numFiles==0)
 			{
 				return 0;
+			}
+			else
+			{
+				LCD_Draw_Text(printNum(numFiles),40,50, GREEN, 1, BLACK);
+				LCD_Draw_Text(printNum(snumFiles),40,60, GREEN, 1, BLACK);
 			}
 			while(Coordinates[0]==-1)
 			{
@@ -704,12 +811,13 @@ int readCard()
 		break;
 	      //~ if(numFiles<LCD_getHeight()/CHAR_HEIGHT-2)
 	      {
-		      if(strncmp(MyFileInfo.fname,"SPEC",4)==0)
+		      snumFiles++;
+		      if(strncasecmp(MyFileInfo.fname,"SP",2)==0)
 		      {
 			      if(f_open(&MyFile,MyFileInfo.fname, FA_READ)==FR_OK)
 			      {
 					UINT BytesRead;
-					u8 bt[0x100];
+					u8 bt[0x80];
 					int y,k;
 					if(pass==0)
 					{		
@@ -740,19 +848,26 @@ int readCard()
 						      }
 						      f_read(&MyFile,&reg,sizeof(reg),&BytesRead);
 						      f_read(&MyFile,&reg_,sizeof(reg_),&BytesRead);
-						      f_read(&MyFile,&IM,sizeof(IM),&BytesRead);
-						      f_read(&MyFile,&IFF1,sizeof(IFF1),&BytesRead);
-						      f_read(&MyFile,&IFF2,sizeof(IFF2),&BytesRead);
-						      f_read(&MyFile,&halt,sizeof(halt),&BytesRead);
-						      for( y=0x4000;y<=0xffff;y+=0x100)
+						      u8 tmp;
+						      f_read(&MyFile,&tmp,sizeof(tmp),&BytesRead);
+						      IM = tmp;
+						      f_read(&MyFile,&tmp,sizeof(tmp),&BytesRead);
+						      IFF1=tmp;
+						      f_read(&MyFile,&tmp,sizeof(tmp),&BytesRead);
+						      IFF2=tmp;
+						      f_read(&MyFile,&tmp,sizeof(tmp),&BytesRead);
+						      halt = tmp;
+						      for( y=0x4000;y<=0xffff;y+=0x80)
 						      {		
-								f_read(&MyFile,&bt[0],0x100,&BytesRead);
-								 for(k=0;k<0x100;k++)
+								f_read(&MyFile,&bt[0],0x80,&BytesRead);
+								 for(k=0;k<0x80;k++)
 								{		
 									poke(y+k,bt[k]);
 								}
 						      }
+#ifdef CHECK_SUMM						      
 						      checkerror = 0;
+#endif						      
 						      // 
 						      f_close(&MyFile);
 						      f_closedir(&MyDirectory);
@@ -804,44 +919,59 @@ void minit()
   
 	initBlocksAndLines();
   
-	memory_test();	
+	//~ memory_test();	
 	z80_reset(1);
+#ifdef CHECK_SUMM	
 	missSaveMemory = 0;
 	missReadMemory = 0;
+#endif	
 	if(!readCard())
 	{
 		clearFullScreen();
 		z80_reset(1);
 	}
+#ifdef CHECK_SUMM	
 	checkerror = 0; 
+#endif	
 	setAttr();	
 }
 int flagg = 1;
 void LCD_Write8x8line(uint16_t x1, uint16_t y1,uint8_t * adress) ;
 void LCD_FullRect3(uint16_t x1, uint16_t y1,uint8_t * adress,uint16_t w,uint16_t h) ;
 int32_t  tickperv =-1000;
+int32_t  dtickperv = 0;
+void z80_interp();
+int   inPause = 0;
 void mloop()
 {
+	static uint16_t old_border =0xffff;
+				
 	int32_t  tickstart = HAL_GetTick();
 	//~ tstate_summ = 0;
 	//~ for(k=0;k<20000;k++)
-	if(!flagg)
+	if((!flagg)&&(!inPause))
 	{
 		//~ LCD_Draw_Text("A",80,60, BLACK, 1,GREEN);
 		//~ HAL_SPI_DeInit(&hspi1);	
 		//~ MX_SPI1_Init(1);
 		//~ SPI_MASTER->CR1 &= ~SPI_CR1_SPE; // DISABLE SPI
 		//~ SPI_MASTER->CR1 |= SPI_CR1_SPE;  // ENABLE SPI
-		
-		for(tstates=0;tstates<69888u;)
-		{ 
-			z80_run();
+		{
+			for(;tstates<69888;)
+			{ 
+				z80_run();
+			}
 		}
+		tstates-=69888;
+		interrupts_enabled_at -=69888;
 		//~ LCD_Draw_Text("B",80,60, BLACK, 1,GREEN);
 	}
 	else
 	{
-		setAttr();	
+		if(flagg)
+		{
+			setAttr();	
+		}
 	}
 	uint32_t tickCurrent =  HAL_GetTick();
 	//~ LCD_Draw_Text("C",80,60, BLACK, 1,GREEN);
@@ -850,7 +980,7 @@ void mloop()
 		HAL_Delay(1);
 	}
 		
-	flagg =0;
+	flagg = 0;
 	
 	uint32_t time_is1 = (tickCurrent - tickstart);
 	//~ LCD_Draw_Text("D",80,60, BLACK, 1,GREEN);
@@ -870,14 +1000,13 @@ void mloop()
 	{
 				tickperv = HAL_GetTick();
 		
-#if 0				
+#if 1				
 				HAL_SPI_DeInit(&hspi1);	
 				MX_SPI1_Init(1);
 				SPI_MASTER->CR1 &= ~SPI_CR1_SPE; // DISABLE SPI
 				SPI_MASTER->CR1 |= SPI_CR1_SPE;  // ENABLE SPI
 #endif		
 				//~ HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BCD);
-				static uint16_t old_border =0xffff;
 				if(old_border!=(border&0x7))
 				{
 					old_border = border&0x7;
@@ -895,10 +1024,9 @@ void mloop()
 				
 				// x tile_ofs = x (0,32)
 				// y tile_ofs 
-				int x,yb;
+				int yb,xb;
 				for( yb=0;yb<24;yb++)
 				{
-					int xb;
 					for(xb=0;xb<32;xb++)
 					{
 						int tileAddr = xb+yb*32;
@@ -909,8 +1037,7 @@ void mloop()
 							uint8_t Br = !!(attr&64);
 							uint8_t scale = (Br?0xff:0xd7);
 							
-							int Fl = !!(attr&128);
-							if(Fl&&(tickCurrent/1000)&1)
+							if((attr&128)&&((tickCurrent/1000)&1))
 							{	
 								scale = (Br?0xd7:0xff);
 							}
@@ -951,7 +1078,7 @@ void mloop()
 				
 		//~ MX_SPI1_Init(0);
 		//~ SPIx_Error2 ();
-#if 0				
+#if 1				
 		SPIx_Error1 ();
 		SPI_MASTER->CR1 &= ~SPI_CR1_SPE; // DISABLE SPI
 		SPI_MASTER->CR1 |= SPI_CR1_SPE;  // ENABLE SPI
@@ -960,7 +1087,8 @@ void mloop()
 		SPI_MASTER->CR1 |= SPI_CR1_SPE;  // ENABLE SPI
 #endif				
 		
-	clearAttr();	
+		clearAttr();	
+		clearKeys();
 	}
 	//~ LCD_Draw_Text("F",80,60, BLACK, 1,GREEN);
 	screen_IRQ = 1;
@@ -976,8 +1104,69 @@ void mloop()
 			
 		//~ }
 	//~ }
+	{
+	const uint16_t yScr = (240-192)/2-4;
+	const uint16_t xScr = (320-256)/2-4;
+	int i;	
+	if(!inPause)
+	{
+		u16 ks = keyScan();
+		if(ks & 0x40)
+		{
+			inPause = 1;
+			clearKeys();
+		}
+	}
+	else
+	{
+		HAL_Delay(50);
+		u16 ks = keyScan();
+		
+		if(ks & (0x10|0x8))
+		{
+			joystickMode = (joystickMode+4)%5;
+			HAL_Delay(200);
+		}
+		else if(ks & (0x1|0x4))
+		{
+			joystickMode = (joystickMode+1)%5;
+			HAL_Delay(200);
+		}
+		else if(ks & (0x22))
+		{
+			inPause = 0;
+			setAttr();
+			old_border =0xffff;
+			HAL_Delay(200);
+		}
+		if(joystickMode == 0)
+		{
+			LCD_Draw_Text(" Cursor   ",xScr+64,yScr+16, BLACK, 2,GREEN);
+		}
+		else if(joystickMode == 1)
+		{
+			LCD_Draw_Text("Sinclair 1",xScr+64,yScr+16, BLACK, 2,GREEN);
+		}
+		else if(joystickMode == 2)
+		{
+			LCD_Draw_Text("Sinclair 2",xScr+64,yScr+16, BLACK, 2,GREEN);
+		}
+		else if(joystickMode == 3)
+		{
+			LCD_Draw_Text(" AZQW     ",xScr+64,yScr+16, BLACK, 2,GREEN);
+		}
+		else if(joystickMode == 4)
+		{
+			LCD_Draw_Text("Kempston  ",xScr+64,yScr+16, BLACK, 2,GREEN);
+		}
+		
+	}
 	
-	LCD_Draw_Text(printNum16(time_is1),80,70, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum(time_is1),xScr,yScr, BLACK, 1,GREEN);
+	LCD_Draw_Text(printNum16_2(keyScan()),xScr,yScr+8, BLACK, 1,GREEN);
+		
+	}
+#ifdef CHECK_SUMM	
 	LCD_Draw_Text(printNum16(timeTick),80,80, BLACK, 1,GREEN);
 	LCD_Draw_Text(printNum16(missSaveMemory),80,90, BLACK, 1,GREEN);
 	LCD_Draw_Text(printNum16(missReadMemory),80,100, BLACK, 1,GREEN);
@@ -992,4 +1181,5 @@ void mloop()
 	LCD_Draw_Text(printNum16(checkdeinit),80,190, BLACK, 1,GREEN);
 	missSaveMemory = 0;
 	missReadMemory = 0;
+#endif	
 }

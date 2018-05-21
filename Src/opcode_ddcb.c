@@ -2,7 +2,7 @@
 //~ void opcode_ddcb(u8 opcode)
 {
 	//~ if((bt>=0x40)&&(bt<0x80)) bt|=7;
-switch (opcode) 
+switch (prefix) 
 {
 case 0x00:
 	//MEMPTR=(IX+d.s);

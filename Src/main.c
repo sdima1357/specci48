@@ -257,7 +257,7 @@ void MX_SPI1_Init(int flag)
   hspi1.Init.CLKPolarity = flag?SPI_POLARITY_LOW:SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = flag?SPI_PHASE_1EDGE:SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+  hspi1.Init.BaudRatePrescaler =flag?SPI_BAUDRATEPRESCALER_2:SPI_BAUDRATEPRESCALER_4;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -325,7 +325,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = KEY_SCAN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(KEY_SCAN_GPIO_Port, &GPIO_InitStruct);
 
   

@@ -1169,7 +1169,12 @@ case 0xca:
 	}
 break;
 case 0xcb:
-	prefix=0xCB;
+	//~ prefix=0xCB;
+		opcode=NEXT_BYTE;
+		R++;
+#include "opcode_cb.c"
+		m_cycle+=4+4;
+
 	//~ no_int=1;
 break;
 /*CALL Z, @*/
@@ -1323,10 +1328,27 @@ case 0xdc:
 		T_WAIT_UNTIL(10);
 	}
 break;
+case 0xfd:
+	tempR = IX;
+	IX = IY;
+	IY = tempR;
 case 0xdd:
-	prefix=0xDD;
-	//~ no_int=1;
+	//~ opcode;
+	//~ if(prefix==0xfd)
+	//~ {
+	//~ }
+	prefix = NEXT_BYTE;
+	R++;
+#include "opcode_dd.c"
+	m_cycle+=4;
+	if(opcode==0xfd)
+	{
+		tempR = IX;
+		IX = IY;
+		IY = tempR;
+	}
 break;
+
 /*SUBC A, #*/
 case 0xde:
 	n=NEXT_BYTE;
@@ -1457,7 +1479,12 @@ case 0xec:
 	}
 break;
 case 0xed:
-	prefix=0xED;
+	//~ prefix=0xED;
+	opcode=NEXT_BYTE;
+	R++;
+#include "opcode_ed.c"
+	m_cycle+=4;
+
 	//~ no_int=1;
 break;
 /*XOR #*/
@@ -1587,10 +1614,6 @@ case 0xfc:
 		MEMPTR=nn;
 		T_WAIT_UNTIL(10);
 	}
-break;
-case 0xfd:
-	prefix=0xFD;
-	//~ no_int=1;
 break;
 /*CP #*/
 case 0xfe:

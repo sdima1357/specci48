@@ -33,5 +33,5 @@ void  LCD_Read64bytes(uint16_t x1, uint16_t y1,uint8_t * adress) ;
 void  LCD_Write64bytes(uint16_t x1, uint16_t y1,uint8_t * adress) ;
 void LCD_Write8line(uint16_t x1, uint16_t y1,uint8_t * adress) ;
 void LCD_Write4line(uint16_t x1, uint16_t y1,uint8_t * adress) ;
-
+//~ #define  CHECK_SUMM
 #endif //TEST1_ILI9341_CORE_H

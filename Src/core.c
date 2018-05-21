@@ -2,11 +2,7 @@
 #include "main.h"
 #include "core.h"
 #include "commands.h"
-//~ #include "control.h"
-//~ #include "stm32f1xx_hal.h"
-//~ #include "rtc.h"
-//~ #include "spi.h"
-//~ #include "gpio.h"
+//~ #define  CHECK_SUMM
 #define TFT_DC_SET        TFT_DC_GPIO_Port->BSRR = TFT_DC_Pin;
 #define TFT_DC_RESET    TFT_DC_GPIO_Port->BSRR = (uint32_t)TFT_DC_Pin<<16U;
 
@@ -104,8 +100,10 @@ static const uint8_t init_commands[] = {
 //~ #pragma GCC optimize ("Os")
 //~ uint32_t busy_counter = 0;
 //<editor-fold desc="LCD initialization functions">
+#ifdef CHECK_SUMM
 int32_t checkerror = 0;
 int32_t checkdeinit = 0;
+#endif
 inline  void dmaSendCmdCont(uint8_t cmd)
 {
 	uint8_t dummy;
@@ -125,7 +123,7 @@ inline  void dmaSendCmdCont(uint8_t cmd)
 	//~ *((__IO uint8_t*)&hspi1.Instance->DR) = cmd;
 	//~ if(flagReinit)
 	//~ {
-	    int 	busy_counter=2000;
+	    int 	busy_counter=200;
 	    while((((hspi1.Instance->SR) & SPI_FLAG_BSY) != RESET)&&(busy_counter>0))
 	    {
 		   busy_counter--;
@@ -150,10 +148,12 @@ inline  void dmaSendCmdCont(uint8_t cmd)
 	    {
 		SPIx_WriteReadData1(&cmd,&dummy,1);
 		HAL_SPI_DeInit(&hspi1);	
-		MX_SPI1_Init(1);
+		MX_SPI1_Init(0);
 		SPI_MASTER->CR1 &= ~SPI_CR1_SPE; // DISABLE SPI
 		SPI_MASTER->CR1 |= SPI_CR1_SPE;  // ENABLE SPI
+#ifdef CHECK_SUMM		    
 		checkdeinit++;
+#endif		    
 	    }
 /*
 	    if( busy_counter==0)
@@ -506,7 +506,9 @@ void LCD_Write64bytes(uint16_t x1, uint16_t y1,uint8_t * adress)
 	for(k=0;k<32;k++)
 	{
 		uint32_t color = sa[k];
+#ifdef CHECK_SUMM		
 		color |= ((uint32_t)__builtin_parity(color)+1)<<16; //add check bit
+#endif		
 		pdata[0] = (color&0x3f)<<2;
 		pdata[1] = ((color>>6)&0x3f)<<2;
 		pdata[2] = ((color>>12)&0x3f)<<2;
@@ -517,9 +519,9 @@ void LCD_Write64bytes(uint16_t x1, uint16_t y1,uint8_t * adress)
 #else	
 #endif    
 	SPIx_ReadF(&dummy);
-	while(((hspi1.Instance->SR) & SPI_FLAG_BSY) != RESET)
-	{
-	} 
+	//~ while(((hspi1.Instance->SR) & SPI_FLAG_BSY) != RESET)
+	//~ {
+	//~ } 
 	TFT_CS_SET;
 }
 
@@ -549,13 +551,15 @@ void  LCD_Read64bytes(uint16_t x1, uint16_t y1,uint8_t * adress)
 		color |= ((pdata[1]&0b11111100)>>2)<<6;
 		color |= ((pdata[2]&0b11111100)>>2)<<12;
 		sa[k] = color&0xffff;
+#ifdef CHECK_SUMM		
 		checkerror+= (((uint32_t)(__builtin_parity(color&0xffff)+1)<<16)!=(color&0xf0000));
+#endif		
 	}
 #else	
 #endif    
-	while(((hspi1.Instance->SR) & SPI_FLAG_BSY) != RESET)
-	{
-	} 
+	//~ while(((hspi1.Instance->SR) & SPI_FLAG_BSY) != RESET)
+	//~ {
+	//~ } 
 	TFT_CS_SET;
 }
 
@@ -579,9 +583,9 @@ void LCD_Write8x8line(uint16_t x1, uint16_t y1,uint8_t * adress)
 #else	
 #endif    
 	SPIx_ReadF(&dummy);
-	while(((hspi1.Instance->SR) & SPI_FLAG_BSY) != RESET)
-	{
-	} 
+	//~ while(((hspi1.Instance->SR) & SPI_FLAG_BSY) != RESET)
+	//~ {
+	//~ } 
 	TFT_CS_SET;
 }
 /*

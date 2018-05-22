@@ -39,8 +39,8 @@ extern int32_t interrupts_enabled_at;
 //~ void SDCard_Config(void);
 //#define  poke(addr,value) writeByte(addr,value)
 #include "z80.h"
-inline uint8_t readByte(uint16_t adress);
-inline void writeByte(uint16_t adress,uint8_t data);
+uint8_t readByte(uint16_t adress);
+void    writeByte(uint16_t adress,uint8_t data);
 uint8_t  VIDEO_RAM[0x5800-0x4000];
 uint8_t  ATTR_RAM[0x5B00-0x5800];
 uint8_t  ATTR_RAM_MOD[(0x5B00-0x5800)>>3];
@@ -61,7 +61,7 @@ void setAttr()
 		ATTR_RAM_MOD[k] = 0xff;
 	}
 }
-inline void  poke(uint16_t addr,uint8_t value) 
+void  poke(uint16_t addr,uint8_t value) 
 {
 	if(addr<0x4000)
 	{
@@ -86,7 +86,7 @@ inline void  poke(uint16_t addr,uint8_t value)
 }
 
 //~ #define  peek(addr) (((uint16_t)addr<(uint16_t)0x4000)?ROM[addr]:readByte(addr))
-inline u8  peek(uint16_t addr) 
+u8  peek(uint16_t addr) 
 {
 	u8 res;
 	if(addr<0x4000)
@@ -450,7 +450,7 @@ int32_t  timeTick = 0;
 #define BX   (8/N_SCALE)
 #define BY  (4/N_SCALE)
 
-inline static int insizeXY(int x,int y)
+static int insizeXY(int x,int y)
 {
 	return (x>=LX&&x<LX+SW&&y>=LY&&y<LY+SH);
 }
@@ -550,7 +550,7 @@ void readCache64b(uint16_t blockNumber,uint8_t * data,uint16_t lineNum)
 }
 
 
-inline uint8_t readByte(uint16_t adress)
+uint8_t readByte(uint16_t adress)
 {
 	timeTick++;
 	uint16_t blockAdress          =  (adress-0x5B00)>>6;
@@ -573,7 +573,7 @@ inline uint8_t readByte(uint16_t adress)
 	line->lastTimeTick = timeTick;
 	return line->cacheLine[adress&0x3f];
 }
-inline void writeByte(uint16_t adress,uint8_t data)
+void writeByte(uint16_t adress,uint8_t data)
 {
 	timeTick++;
 	uint16_t blockAdress =  (adress-0x5B00)>>6;

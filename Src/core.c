@@ -28,7 +28,8 @@ void SPIx_WriteReadData1(const uint8_t *DataOut, uint8_t *DataIn, uint16_t DataL
 #define COLOR_3BYTES 1
 static uint16_t screen_width  = LCD_PIXEL_WIDTH,
     screen_height = LCD_PIXEL_HEIGHT;
-inline void SPIx_WriteF(uint8_t  Value)
+
+void SPIx_WriteF(uint8_t  Value)
 {
 	    while(((hspi1.Instance->SR) & SPI_FLAG_TXE) != SPI_FLAG_TXE)
 	    {
@@ -36,7 +37,7 @@ inline void SPIx_WriteF(uint8_t  Value)
 	    }  
 	    *((__IO uint8_t*)&hspi1.Instance->DR) = Value;
 }
-inline void SPIx_ReadF(uint8_t * Value)
+void SPIx_ReadF(uint8_t * Value)
 {
 	    while(((hspi1.Instance->SR) & SPI_FLAG_RXNE) != SPI_FLAG_RXNE)
 	    {
@@ -104,7 +105,7 @@ static const uint8_t init_commands[] = {
 int32_t checkerror = 0;
 int32_t checkdeinit = 0;
 #endif
-inline  void dmaSendCmdCont(uint8_t cmd)
+void dmaSendCmdCont(uint8_t cmd)
 {
 	uint8_t dummy;
 	TFT_CS_RESET;
@@ -181,7 +182,7 @@ inline  void dmaSendCmdCont(uint8_t cmd)
 	*/
 }
 
-inline  void dmaSendDataCont8(uint8_t *data, uint32_t n) {
+void dmaSendDataCont8(uint8_t *data, uint32_t n) {
     //~ TFT_CS_RESET;
     TFT_DC_SET;
 	int k;
@@ -199,7 +200,7 @@ inline  void dmaSendDataCont8(uint8_t *data, uint32_t n) {
 }
 
 #ifdef    COLOR_3BYTES
-inline void color_convert(uint16_t color,uint8_t* result)
+void color_convert(uint16_t color,uint8_t* result)
 {
 	//~ #define RED             0xF800 
 	//~ #define BLUE            0x001F
@@ -210,7 +211,7 @@ inline void color_convert(uint16_t color,uint8_t* result)
 }
 #endif
 
-inline  void dmaSendDataCont16(uint16_t *data, uint32_t n) 
+void dmaSendDataCont16(uint16_t *data, uint32_t n) 
 {
     int k;
     //~ TFT_CS_RESET;
@@ -238,7 +239,7 @@ inline  void dmaSendDataCont16(uint16_t *data, uint32_t n)
 
 
 
-inline  void dmaFill16(uint16_t color, uint32_t n) {
+void dmaFill16(uint16_t color, uint32_t n) {
     //~ TFT_CS_RESET;
     uint8_t dummy;
     dmaSendCmdCont(LCD_GRAM);
@@ -272,7 +273,7 @@ inline  void dmaFill16(uint16_t color, uint32_t n) {
     //~ }  
     TFT_CS_SET;
 }
-inline  void dmaFill16_2(uint16_t color,uint16_t seccolor, uint32_t n) {
+void dmaFill16_2(uint16_t color,uint16_t seccolor, uint32_t n) {
     //~ TFT_CS_RESET;
     uint8_t dummy;
     dmaSendCmdCont(LCD_GRAM);
@@ -689,11 +690,11 @@ void LCD_fillRect2(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t co
 	//~ x 0 1 2 3
 	//~ 	 0 1 2 3
 
-inline uint16_t LCD_getWidth() {
+uint16_t LCD_getWidth() {
     return screen_width;
 }
 
-inline uint16_t LCD_getHeight() {
+uint16_t LCD_getHeight() {
     return screen_height;
 }
 //~ void LCD_Draw_Pixel(uint16_t x,uint16_t y,uint16_t color)

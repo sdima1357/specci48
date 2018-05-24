@@ -47,7 +47,8 @@ case 0x07:
 break;
 /*EX AF, AF'*/
 case 0x08:
-	EX(AF, AF_);
+	EX(F, F_);
+	EX(A, A_);
 	T_WAIT_UNTIL(4);
 break;
 /*ADD HL, BC*/
@@ -408,10 +409,11 @@ case 0x3f:
 	T_WAIT_UNTIL(4);
 break;
 /*LD B, B*/
-case 0x40:
-	LD(B, B);
+case 0x40 ... 0x45:
+	LD(B, RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*LD B, C*/
 case 0x41:
 	LD(B, C);
@@ -437,6 +439,7 @@ case 0x45:
 	LD(B, L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*LD B, (HL)*/
 case 0x46:
 	temp8=READ_BYTE(HL);
@@ -449,10 +452,11 @@ case 0x47:
 	T_WAIT_UNTIL(4);
 break;
 /*LD C, B*/
-case 0x48:
-	LD(C, B);
+case 0x48 ... 0x4d:
+	LD(C, RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*LD C, C*/
 case 0x49:
 	LD(C, C);
@@ -478,6 +482,7 @@ case 0x4d:
 	LD(C, L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*LD C, (HL)*/
 case 0x4e:
 	temp8=READ_BYTE(HL);
@@ -490,10 +495,11 @@ case 0x4f:
 	T_WAIT_UNTIL(4);
 break;
 /*LD D, B*/
-case 0x50:
-	LD(D, B);
+case 0x50 ... 0x55:
+	LD(D, RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*LD D, C*/
 case 0x51:
 	LD(D, C);
@@ -519,6 +525,7 @@ case 0x55:
 	LD(D, L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*LD D, (HL)*/
 case 0x56:
 	temp8=READ_BYTE(HL);
@@ -531,10 +538,11 @@ case 0x57:
 	T_WAIT_UNTIL(4);
 break;
 /*LD E, B*/
-case 0x58:
-	LD(E, B);
+case 0x58 ... 0x5d:
+	LD(E, RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*LD E, C*/
 case 0x59:
 	LD(E, C);
@@ -560,6 +568,7 @@ case 0x5d:
 	LD(E, L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*LD E, (HL)*/
 case 0x5e:
 	temp8=READ_BYTE(HL);
@@ -572,10 +581,11 @@ case 0x5f:
 	T_WAIT_UNTIL(4);
 break;
 /*LD H, B*/
-case 0x60:
-	LD(H, B);
+case 0x60 ...0x65:
+	LD(H, RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*LD H, C*/
 case 0x61:
 	LD(H, C);
@@ -601,6 +611,7 @@ case 0x65:
 	LD(H, L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*LD H, (HL)*/
 case 0x66:
 	temp8=READ_BYTE(HL);
@@ -613,10 +624,11 @@ case 0x67:
 	T_WAIT_UNTIL(4);
 break;
 /*LD L, B*/
-case 0x68:
-	LD(L, B);
+case 0x68 ... 0x6d:
+	LD(L, RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*LD L, C*/
 case 0x69:
 	LD(L, C);
@@ -642,6 +654,7 @@ case 0x6d:
 	LD(L, L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*LD L, (HL)*/
 case 0x6e:
 	temp8=READ_BYTE(HL);
@@ -654,11 +667,12 @@ case 0x6f:
 	T_WAIT_UNTIL(4);
 break;
 /*LD (HL), B*/
-case 0x70:
-	LD(temp8, B);
+case 0x70 ...0x75:
+	LD(temp8, RC(opcode&7));
 	WRITE_BYTE((HL), temp8);
 	T_WAIT_UNTIL(7);
 break;
+#if 0
 /*LD (HL), C*/
 case 0x71:
 	LD(temp8, C);
@@ -689,6 +703,7 @@ case 0x75:
 	WRITE_BYTE(HL, temp8);
 	T_WAIT_UNTIL(7);
 break;
+#endif
 /*HALT*/
 case 0x76:
 	HALT();
@@ -702,10 +717,11 @@ case 0x77:
 	T_WAIT_UNTIL(7);
 break;
 /*LD A, B*/
-case 0x78:
-	LD(A, B);
+case 0x78 ... 0x7d:
+	LD(A, RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*LD A, C*/
 case 0x79:
 	LD(A, C);
@@ -731,6 +747,7 @@ case 0x7d:
 	LD(A, L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*LD A, (HL)*/
 case 0x7e:
 	temp8=READ_BYTE(HL);
@@ -743,10 +760,11 @@ case 0x7f:
 	T_WAIT_UNTIL(4);
 break;
 /*ADD A, B*/
-case 0x80:
-	ADD(A, B);
+case 0x80 ... 0x85:
+	ADD(A, RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*ADD A, C*/
 case 0x81:
 	ADD(A, C);
@@ -772,6 +790,7 @@ case 0x85:
 	ADD(A, L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*ADD A, (HL)*/
 case 0x86:
 	temp8=READ_BYTE(HL);
@@ -784,10 +803,11 @@ case 0x87:
 	T_WAIT_UNTIL(4);
 break;
 /*ADDC A, B*/
-case 0x88:
-	ADDC(A, B);
+case 0x88 ... 0x8d:
+	ADDC(A, RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*ADDC A, C*/
 case 0x89:
 	ADDC(A, C);
@@ -813,6 +833,7 @@ case 0x8d:
 	ADDC(A, L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*ADDC A, (HL)*/
 case 0x8e:
 	temp8=READ_BYTE(HL);
@@ -825,10 +846,11 @@ case 0x8f:
 	T_WAIT_UNTIL(4);
 break;
 /*SUB B*/
-case 0x90:
-	SUB(B);
+case 0x90 ... 0x95:
+	SUB(RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*SUB C*/
 case 0x91:
 	SUB(C);
@@ -854,6 +876,7 @@ case 0x95:
 	SUB(L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*SUB (HL)*/
 case 0x96:
 	temp8=READ_BYTE(HL);
@@ -866,10 +889,11 @@ case 0x97:
 	T_WAIT_UNTIL(4);
 break;
 /*SUBC A, B*/
-case 0x98:
-	SUBC(A, B);
+case 0x98 ... 0x9d:
+	SUBC(A, RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*SUBC A, C*/
 case 0x99:
 	SUBC(A, C);
@@ -895,6 +919,7 @@ case 0x9d:
 	SUBC(A, L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*SUBC A, (HL)*/
 case 0x9e:
 	temp8=READ_BYTE(HL);
@@ -907,10 +932,11 @@ case 0x9f:
 	T_WAIT_UNTIL(4);
 break;
 /*AND B*/
-case 0xa0:
-	AND(B);
+case 0xa0 ... 0xa5:
+	AND(RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*AND C*/
 case 0xa1:
 	AND(C);
@@ -936,6 +962,7 @@ case 0xa5:
 	AND(L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*AND (HL)*/
 case 0xa6:
 	temp8=READ_BYTE(HL);
@@ -948,10 +975,11 @@ case 0xa7:
 	T_WAIT_UNTIL(4);
 break;
 /*XOR B*/
-case 0xa8:
-	XOR(B);
+case 0xa8 ... 0xad:
+	XOR(RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*XOR C*/
 case 0xa9:
 	XOR(C);
@@ -977,6 +1005,7 @@ case 0xad:
 	XOR(L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*XOR (HL)*/
 case 0xae:
 	temp8=READ_BYTE(HL);
@@ -989,10 +1018,11 @@ case 0xaf:
 	T_WAIT_UNTIL(4);
 break;
 /*OR B*/
-case 0xb0:
-	OR(B);
+case 0xb0 ... 0xb5:
+	OR(RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*OR C*/
 case 0xb1:
 	OR(C);
@@ -1018,6 +1048,7 @@ case 0xb5:
 	OR(L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*OR (HL)*/
 case 0xb6:
 	temp8=READ_BYTE(HL);
@@ -1030,10 +1061,11 @@ case 0xb7:
 	T_WAIT_UNTIL(4);
 break;
 /*CP B*/
-case 0xb8:
-	CP(B);
+case 0xb8 ... 0xbd:
+	CP(RC(opcode&7));
 	T_WAIT_UNTIL(4);
 break;
+#if 0
 /*CP C*/
 case 0xb9:
 	CP(C);
@@ -1059,6 +1091,7 @@ case 0xbd:
 	CP(L);
 	T_WAIT_UNTIL(4);
 break;
+#endif
 /*CP (HL)*/
 case 0xbe:
 	temp8=READ_BYTE(HL);
@@ -1316,7 +1349,7 @@ case 0xdb:
 break;
 /*CALL C, @*/
 case 0xdc:
-	nn=NEXT_WORD;
+	nn=NEXT_WORD; 
 	if(F&FLAG_C)
 	{
 		CALL(nn);
@@ -1329,24 +1362,14 @@ case 0xdc:
 	}
 break;
 case 0xfd:
-	tempR = IX;
-	IX = IY;
-	IY = tempR;
 case 0xdd:
-	//~ opcode;
-	//~ if(prefix==0xfd)
-	//~ {
-	//~ }
+{
+	u16 *pntReg = (opcode==0xdd)?(&IX):(&IY);
 	prefix = NEXT_BYTE;
 	R++;
 #include "opcode_dd.c"
 	m_cycle+=4;
-	if(opcode==0xfd)
-	{
-		tempR = IX;
-		IX = IY;
-		IY = tempR;
-	}
+}
 break;
 
 /*SUBC A, #*/
@@ -1512,7 +1535,12 @@ case 0xf0:
 break;
 /*POP AF*/
 case 0xf1:
-	POP(AF);
+{
+	u16 tt;
+	POP(tt);
+	F = ((u8*)&tt)[0];
+	A = ((u8*)&tt)[1];
+}
 	T_WAIT_UNTIL(10);
 break;
 /*JP P, @*/
@@ -1550,7 +1578,12 @@ case 0xf4:
 break;
 /*PUSH AF*/
 case 0xf5:
-	PUSH(AF);
+{
+	u16 tt;
+	((u8*)&tt)[0] = F;
+	((u8*)&tt)[1] = A;
+	PUSH(tt);
+}
 	T_WAIT_UNTIL(11);
 break;
 /*OR #*/

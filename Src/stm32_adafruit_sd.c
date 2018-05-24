@@ -97,7 +97,7 @@
 #define SD_DUMMY_BYTE            0xFF    
 #define SD_NO_RESPONSE_EXPECTED  0x80
 extern SPI_HandleTypeDef hspi1;
-static uint32_t SpixTimeout = 1000;
+static const uint32_t SpixTimeout = 1000;
 void MX_SPI1_Init(int);
 #define SD_CS_LOW()       HAL_GPIO_WritePin(SD1_CS_GPIO_Port, SD1_CS_Pin, GPIO_PIN_RESET)
 #define SD_CS_HIGH()      HAL_GPIO_WritePin(SD1_CS_GPIO_Port, SD1_CS_Pin, GPIO_PIN_SET)

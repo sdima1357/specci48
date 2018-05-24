@@ -254,8 +254,8 @@ void MX_SPI1_Init(int flag)
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = flag?SPI_POLARITY_LOW:SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = flag?SPI_PHASE_1EDGE:SPI_PHASE_1EDGE;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
   hspi1.Init.BaudRatePrescaler =flag?SPI_BAUDRATEPRESCALER_2:SPI_BAUDRATEPRESCALER_4;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;

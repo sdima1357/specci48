@@ -2,6 +2,7 @@
 #include "main.h"
 #include "core.h"
 #include "commands.h"
+ void MX_SPI1_Init(int);
 //~ #define  CHECK_SUMM
 #define TFT_DC_SET        TFT_DC_GPIO_Port->BSRR = TFT_DC_Pin;
 #define TFT_DC_RESET    TFT_DC_GPIO_Port->BSRR = (uint32_t)TFT_DC_Pin<<16U;

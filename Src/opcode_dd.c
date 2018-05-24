@@ -1,4 +1,10 @@
 //~ void opcode_dd(u8 opcode)
+#undef IX
+#undef IXH 
+#undef IXL
+#define IX (pntReg[0])
+#define IXL (((u8*)pntReg)[0])
+#define IXH (((u8*)pntReg)[1]) 
 {
 switch (prefix) 
 {

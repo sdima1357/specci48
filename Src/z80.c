@@ -1,6 +1,6 @@
 #include "z80.h"
 //~ #include <stdio.h>
-
+ 
 int32_t tstates = 0;
 int32_t interrupts_enabled_at;
 
@@ -9,11 +9,6 @@ ZReg 		reg;
 ZReg_Shadow 	reg_;
 ZINTRFlags      IFlags;
 
-union
-{
-	u8 u;
-	s8 s;
-}d;
 
 
 
@@ -50,7 +45,8 @@ void z80_reset( int hard_reset )
 
 	*/
 	
-  AF =AF_=0xffff;
+  AF_=0xffff;
+  F=0xff;A=0xff;
   I=R=R7=0;
   PC=0;
   SP=0xffff;
@@ -87,9 +83,18 @@ tstates = 0;
 #define EMPTY ;
 //~ void opcode_dd(u8 opcode);
 //~ void opcode_ddcb(u8 opcode);
-
+//~ void z80_check(void)
+//~ {
+	
+//~ }
 void z80_run(void)
 {
+union
+{
+	u8 u;
+	s8 s;
+}d;
+
 u8 temp8;
 u16 temp16;
 
@@ -111,11 +116,8 @@ u8 lookup;
 u8 n;
 u8 prefix;;
 u16 nn;
-u16 tempR;
+//~ u16 tempR;
 int kk;
-for(kk=0;kk<10;kk++)
-{
-u16 m_cycle = 0;
 
 //~ CONT:	
 	//~ if (halt==0)
@@ -145,6 +147,11 @@ u16 m_cycle = 0;
 		}
 		return;	
 	}
+	//~ const int rtable [] = {1,0,3,2,5,4,21,7};	//
+
+for(kk=0;kk<8;kk++)
+{
+u16 m_cycle = 0;
 	opcode=NEXT_BYTE;
 	R++;
 #include "opcode_base.c"

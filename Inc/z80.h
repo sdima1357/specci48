@@ -10,8 +10,8 @@ typedef int16_t s16;
 
 typedef union 
 {
-	u8 r[21];//C, B, E, D, L, H, F, A, IXL, IXH, IYL, IYH, SPL, SPH, PCL, PCH, MEMPTRL, MEMPTRH, I, R, R7
-	u16	rp[9];//BC, DE, HL, AF, IX, IY, SP, PC, MEMPTR
+	u8   r[22];//C, B, E, D, L, H, F, A, IXL, IXH, IYL, IYH, SPL, SPH, PCL, PCH, MEMPTRL, MEMPTRH, I, R, R7,dummy
+	u16 rp[11];//BC, DE, HL, AF, IX, IY, SP, PC, MEMPTR ,
 }ZReg;
 
 typedef union 
@@ -47,11 +47,11 @@ extern ZINTRFlags IFlags;
 #define   screen_IRQ  IFlags.r_screen_IRQ
 
 
-
+#define RC(arg)   (reg.r[(arg)^1])
 /*macros used for accessing the registers*/
-#define A		reg.r[7]
-#define F   reg.r[6]
-#define AF  reg.rp[3]
+#define A	   reg.r[6]
+#define F     reg.r[21]
+//~ #define FA  reg.rp[3]
 
 #define B   reg.r[1]
 #define C   reg.r[0]
@@ -122,7 +122,7 @@ extern ZINTRFlags IFlags;
 
 #define READ_WORD(addr) peek16(addr);
 #define WRITE_WORD(addr, value) poke16(addr, value);
-#define READ_BYTE(addr) peek(addr);
+#define READ_BYTE(addr) (peek(addr))
 #define WRITE_BYTE(addr, value) poke(addr, value);
 
 /*macros R/W port*/

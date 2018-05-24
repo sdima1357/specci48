@@ -41,8 +41,9 @@ extern int32_t interrupts_enabled_at;
 #include "z80.h"
 uint8_t readByte(uint16_t adress);
 void    writeByte(uint16_t adress,uint8_t data);
-uint8_t  VIDEO_RAM[0x5800-0x4000];
-uint8_t  ATTR_RAM[0x5B00-0x5800];
+uint8_t  VIDEO_ATTR_RAM[0x5B00-0x4000];
+#define   VIDEO_RAM (&VIDEO_ATTR_RAM[0x0])
+#define   ATTR_RAM  (&VIDEO_ATTR_RAM[0x1800])
 uint8_t  ATTR_RAM_MOD[(0x5B00-0x5800)>>3];
 
 void clearAttr()
@@ -61,63 +62,7 @@ void setAttr()
 		ATTR_RAM_MOD[k] = 0xff;
 	}
 }
-void  poke(uint16_t addr,uint8_t value) 
-{
-	if(addr<0x4000)
-	{
-	}
-	else if(addr<0x5800)
-	{
-		// tile address from memaddr;
-		uint16_t pa = (addr&0x00ff) | (addr&0x1800)>>3;
-		ATTR_RAM_MOD[pa>>3] |= (1<<(pa&0x3));
-		VIDEO_RAM[addr-0x4000]=value;
-	}
-	else if(addr<0x5B00)
-	{
-		uint16_t pa = addr-0x5800;
-		ATTR_RAM_MOD[pa>>3] |= (1<<(pa&0x3));
-		ATTR_RAM[pa]= value;
-	}
-	else
-	{
-		writeByte(addr,value);
-	}
-}
 
-//~ #define  peek(addr) (((uint16_t)addr<(uint16_t)0x4000)?ROM[addr]:readByte(addr))
-u8  peek(uint16_t addr) 
-{
-	u8 res;
-	if(addr<0x4000)
-	{
-		res = ROM[addr];
-	}
-	else if (addr<0x5800)
-	{
-		res = VIDEO_RAM[addr-0x4000];
-	}
-	else if (addr<0x5B00)
-	{
-		res = ATTR_RAM[addr-0x5800];
-	}
-	else
-	{
-		res = readByte(addr);
-	}
-	return res;
-}
-
-void poke16(u16 addr, u16 value)
-{
-	poke(addr, value);
-	poke(addr+1, value>>8);
-}
-
-u16 peek16(u16 addr)
-{
-	return ((peek(addr+1)<<8)|peek(addr));
-}
 
 #if 0
 //adddress bus:	//8	//9	//10	//11	//12	//13	//14	//15		
@@ -141,8 +86,10 @@ const int myMatrix[3][4] = {
 int     joystickMode = 0;
 uint8_t	IsPressed[8] = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff};  //public
 uint8_t	Kempston = 0;  //public
+static u16 prevKey = 0xffff;
 void clearKeys()
 {
+	prevKey = 0xffff;
 	IsPressed[0]= 0xff;
 	IsPressed[1]= 0xff;
 	IsPressed[2]= 0xff;
@@ -156,17 +103,21 @@ void setRes(u8 adr,u8 bit,int setRes)
 {
 	if(setRes)
 	{
-		IsPressed[adr-8]|= 1u<<bit;
+		IsPressed[adr]|= 1u<<bit;
 	}
 	else
 	{
-		IsPressed[adr-8]&= ~(1u<<bit);
+		IsPressed[adr]&= ~(1u<<bit);
 	}
 		
 }
 u16 keyScan()
 {
 	u16 res =((KEYB_0_GPIO_Port->IDR>>3)&0b1111111);
+	
+	if(res != prevKey)
+	{
+	prevKey = res ;
 	Kempston = 0;
 	if(joystickMode==0) //cursor
 	{
@@ -176,14 +127,14 @@ u16 keyScan()
 //	left   - 5
 //	right  - 8
 // 	fire 	 0
-		setRes(12,3,res&0x10);
-		setRes(12,4,res&0x1);
-		setRes(11,4,res&0x4);
-		setRes(12,2,res&0x8);
+		setRes(12-8,3,res&0x10);
+		setRes(12-8,4,res&0x1);
+		setRes(11-8,4,res&0x4);
+		setRes(12-8,2,res&0x8);
 		
-		setRes(12,0,res&0x20);
+		setRes(12-8,0,res&0x20);
 		
-		setRes(15,0,res&0x2);  //space
+		setRes(15-8,0,res&0x2);  //space
 	}
 	else if((joystickMode)==1)  
 	{
@@ -193,14 +144,14 @@ u16 keyScan()
 //	left   - 6
 //	right  - 7
 // 	fire 	 0
-		setRes(12,1,res&0x10);
-		setRes(12,2,res&0x1);
-		setRes(12,4,res&0x4);
-		setRes(12,3,res&0x8);
+		setRes(12-8,1,res&0x10);
+		setRes(12-8,2,res&0x1);
+		setRes(12-8,4,res&0x4);
+		setRes(12-8,3,res&0x8);
 		
-		setRes(12,0,res&0x20);
+		setRes(12-8,0,res&0x20);
 		
-		setRes(15,0,res&0x2);  //space
+		setRes(15-8,0,res&0x2);  //space
 	}
 	else if((joystickMode)==2)  
 	{
@@ -210,14 +161,14 @@ u16 keyScan()
 //	left   - 1
 //	right  - 2
 // 	fire 	 5
-		setRes(11,3,res&0x10);
-		setRes(11,2,res&0x1);
-		setRes(11,0,res&0x4);
-		setRes(11,1,res&0x8);
+		setRes(11-8,3,res&0x10);
+		setRes(11-8,2,res&0x1);
+		setRes(11-8,0,res&0x4);
+		setRes(11-8,1,res&0x8);
 		
-		setRes(11,4,res&0x20);
+		setRes(11-8,4,res&0x20);
 		
-		setRes(15,0,res&0x2);  //space
+		setRes(15-8,0,res&0x2);  //space
 	}
 	else if((joystickMode)==3)       //keyboard
 	{
@@ -227,14 +178,14 @@ u16 keyScan()
 //	left   - q
 //	right  - w
 // 	fire 	 space
-		setRes(9,0,res&0x10); //A
-		setRes(8,1,res&0x1);  //Z
-		setRes(10,0,res&0x4);  //q
-		setRes(10,1,res&0x8);  //w
+		setRes(9-8,0,res&0x10); //A
+		setRes(8-8,1,res&0x1);  //Z
+		setRes(10-8,0,res&0x4);  //q
+		setRes(10-8,1,res&0x8);  //w
 		
-		setRes(15,0,res&0x20); //space
+		setRes(15-8,0,res&0x20); //space
 		
-		setRes(14,0,res&0x2);  //enter
+		setRes(14-8,0,res&0x2);  //enter
 	}
 	else if(joystickMode==4)  
 	{
@@ -247,6 +198,7 @@ u16 keyScan()
 //
 	u16 ires = res^0b1111111;
 	Kempston = ((ires&0x34)>>1)|((ires&0x1)<<2)|((ires&0x8)>>3);//|0b1110000;
+	}
 	}
 	return res^0b1111111;
 }
@@ -418,27 +370,44 @@ void clearFullScreen()
 }
 #define EXIST 		0x2000 
 #define MODIFIED 	0x4000 
-//~ #define TO_DISPLAY	0x800 
+//~ #define TO_DISPLAY	0x8000 
 #define BLOCKS ((0x10000-0x5B00)/64)
+
+#define ROM_BLOCKS_ADDR 
+
+#ifndef ROM_BLOCKS_ADDR
+#else
+#include "blocks.h"
+#endif
+
 struct block
 {
+#ifndef ROM_BLOCKS_ADDR
 	uint8_t  X;  
 	uint8_t  Y; 
+#endif	
 	uint16_t  flag_line; 
-	//~ uint8_t  flags; // 0x200 - exist mask  0x400 modified by write 	//~ uint8_t  line;  // line - pointer
+	//~ uint8_t  flags; // 0x2000 - exist mask  0x4000 modified by write 	//~ uint8_t  line;  // line - pointer
 }  Blocks[BLOCKS];
 
-#define NUM_LINES (96+8)
+#ifndef ROM_BLOCKS_ADDR
+#define BlocksR  Blocks
+#define NUM_LINES (112)
+#else
+#define NUM_LINES (130)
+#endif
 
 struct cacheLinePool
 {
 	uint8_t    cacheLine[64];
 	uint16_t  currentBlockNumber;
-	int32_t  lastTimeTick;
+	uint32_t  lastTimeTick;
 }  Lines[NUM_LINES];
 
-int32_t  timeTick = 0;
+uint32_t  timeTick = 0;
 
+
+#ifndef ROM_BLOCKS_ADDR				
 #define N_SCALE 4
 #define WW  (320/N_SCALE)
 #define HH   (240/N_SCALE)
@@ -449,18 +418,18 @@ int32_t  timeTick = 0;
 #define LY  ((HH-SH)/2)
 #define BX   (8/N_SCALE)
 #define BY  (4/N_SCALE)
-
 static int insizeXY(int x,int y)
 {
 	return (x>=LX&&x<LX+SW&&y>=LY&&y<LY+SH);
 }
-
+#endif
 void initBlocksAndLines()
 {
 	
 	uint16_t k=0;
 	// all screen is  320/4*240/4 blocs;
 	// allocated to spessi screen is (256+8)/4*(192)/4
+#ifndef ROM_BLOCKS_ADDR				
 	uint16_t cnt = 0;
 	int y,x,yy,xx;
 	for(y=0;y<HH;y+=BY)
@@ -482,7 +451,7 @@ void initBlocksAndLines()
 			{
 				Blocks[cnt].X = x;
 				Blocks[cnt].Y = y;
-				Blocks[cnt].flag_line = 0; //not exist
+				//~ Blocks[cnt].flag_line = 0; //not exist
 				cnt++;
 			}
 			if(cnt==BLOCKS)
@@ -493,7 +462,11 @@ void initBlocksAndLines()
 		
 	}
 ENOU:
-	
+#endif				
+	for(k=0;k<BLOCKS;k++)
+	{
+		Blocks[k].flag_line = 0; //not exist
+	}
 	//~ LCD_Draw_Text(printNum(cnt),4,LCD_getHeight()/2, YELLOW, 4, BLACK);   
 	//~ HAL_Delay(500);
 	for(k=0;k<NUM_LINES;k++)
@@ -509,11 +482,11 @@ int  findOldestLine()
 {
 		// find oldest line for commit
 	int   oldestLineIndex = 0;
-	int32_t timediff       = 0;
+	uint32_t timediff       = 0;
 	int k;
 	for(k=0;k<NUM_LINES;k++)
 	{
-		int32_t diffval = timeTick-Lines[k].lastTimeTick;
+		uint32_t diffval = timeTick-Lines[k].lastTimeTick;
 		if(diffval>timediff)
 		{
 			timediff = diffval;
@@ -527,8 +500,8 @@ void writeCache64bIfmodified(uint16_t blockNumber,uint8_t * data)
 {
 	if(Blocks[blockNumber].flag_line&MODIFIED)
 	{
-		uint16_t X = (Blocks[blockNumber].X)*4;
-		uint16_t Y = (Blocks[blockNumber].Y)*4;
+		uint16_t X = (BlocksR[blockNumber].X)*4;
+		uint16_t Y = (BlocksR[blockNumber].Y)*4;
 		LCD_Write64bytes(X,Y,data);
 #ifdef CHECK_SUMM		
 		missSaveMemory++;
@@ -539,8 +512,8 @@ void writeCache64bIfmodified(uint16_t blockNumber,uint8_t * data)
 }
 void readCache64b(uint16_t blockNumber,uint8_t * data,uint16_t lineNum)
 {
-	uint16_t X = (Blocks[blockNumber].X)*4;
-	uint16_t Y = (Blocks[blockNumber].Y)*4;
+	uint16_t X = (BlocksR[blockNumber].X)*4;
+	uint16_t Y = (BlocksR[blockNumber].Y)*4;
 	
 	LCD_Read64bytes(X,Y,data);
 #ifdef CHECK_SUMM	
@@ -549,7 +522,7 @@ void readCache64b(uint16_t blockNumber,uint8_t * data,uint16_t lineNum)
 	Blocks[blockNumber].flag_line = EXIST|lineNum; 
 }
 
-
+/*
 uint8_t readByte(uint16_t adress)
 {
 	timeTick++;
@@ -573,6 +546,8 @@ uint8_t readByte(uint16_t adress)
 	line->lastTimeTick = timeTick;
 	return line->cacheLine[adress&0x3f];
 }
+*/
+/*
 void writeByte(uint16_t adress,uint8_t data)
 {
 	timeTick++;
@@ -596,6 +571,94 @@ void writeByte(uint16_t adress,uint8_t data)
 	line->lastTimeTick = timeTick;
 	line->cacheLine[adress&0x3f] = data;
 	bl->flag_line|=MODIFIED;//|TO_DISPLAY;
+}
+*/
+u8  peek(uint16_t addr) 
+{
+	u8 res;
+	if(addr>=0x5B00)
+	{
+		timeTick++;
+		uint16_t blockAdress          =  (addr-0x5B00)>>6;
+		//~ struct block* bl                 = &Blocks[blockAdress];
+		uint16_t flag_line = Blocks[blockAdress].flag_line;
+		struct cacheLinePool* line = &Lines[flag_line&0x1ff];
+		if(!(flag_line&EXIST))
+		{
+			int oldestLineIndex = findOldestLine();
+			// commit line to extern mem if it touched
+			line = &Lines[oldestLineIndex];
+			writeCache64bIfmodified(line->currentBlockNumber,line->cacheLine);
+			// read right line from extern mem && mark as last read
+			//~ 
+			readCache64b(blockAdress,line->cacheLine,oldestLineIndex);
+			line->currentBlockNumber = blockAdress;
+			// 
+			
+		}
+		//mark as last read
+		line->lastTimeTick = timeTick;
+		res = line->cacheLine[addr&0x3f];
+	}
+	else if (addr>=0x4000)
+	{
+		res = VIDEO_ATTR_RAM[addr-0x4000];
+	}
+	else
+	{
+		res = ROM[addr];
+	}
+	return res;
+}
+void  poke(uint16_t addr,uint8_t value) 
+{
+	if(addr>=0x5B00)
+	{
+		timeTick++;
+		uint16_t blockAdress =  (addr-0x5B00)>>6;
+		uint16_t flag_line = Blocks[blockAdress].flag_line;
+		struct cacheLinePool* line = &Lines[flag_line&0x1ff];
+		if(!(flag_line&EXIST))
+		{
+			
+			// find oldest line for commit
+			int oldestLineIndex = findOldestLine();
+			// commit line to extern mem if it touched
+			line = &Lines[oldestLineIndex];
+			writeCache64bIfmodified(line->currentBlockNumber,line->cacheLine);
+			// read right line from extern mem && mark as last read
+			//~ 
+			readCache64b(blockAdress,line->cacheLine,oldestLineIndex);
+			line->currentBlockNumber = blockAdress;
+			// 
+		}
+		line->lastTimeTick = timeTick;
+		line->cacheLine[addr&0x3f] = value;
+		Blocks[blockAdress].flag_line |= MODIFIED;
+		//~ bl->flag_line;//|TO_DISPLAY;
+		//~ writeByte(addr,value);
+	}
+	else if(addr>=0x4000)
+	{
+		uint16_t pa = (addr<0x5800)?((addr&0x00ff) | (addr&0x1800)>>3):(addr-0x5800);
+		ATTR_RAM_MOD[pa>>3] |= (1<<(pa&0x3));
+		VIDEO_ATTR_RAM[addr-0x4000]=value;
+	}
+	//~ else  //nothing
+	//~ {
+		//~ // tile address from memaddr;
+	//~ }
+}
+
+void poke16(u16 addr, u16 value)
+{
+	poke(addr, value);
+	poke(addr+1, value>>8);
+}
+
+u16 peek16(u16 addr)
+{
+	return ((peek(addr+1)<<8)|peek(addr));
 }
 
 /* USER CODE END 0 */
@@ -621,15 +684,15 @@ void memory_test()
 		  {
 			  bts[k] = ((block+k)^0x55)&0xff;
 		  }
-		  int X = Blocks[block].X*4;
-		  int Y = Blocks[block].Y*4;
+		  int X = BlocksR[block].X*4;
+		  int Y = BlocksR[block].Y*4;
 		  LCD_Write64bytes(X,Y,bts);
 	  }
 	  
 	  for(block=0;block<BLOCKS;block++)
 	  {
-		  int X = Blocks[block].X*4;
-		  int Y = Blocks[block].Y*4;
+		  int X = BlocksR[block].X*4;
+		  int Y = BlocksR[block].Y*4;
 		  for(k=0;k<64;k++)
 		  {
 			  bts[k] = 0;
@@ -667,8 +730,8 @@ void memory_test()
 		  {
 			  bts[k] = 0;
 		  }
-		  int X = Blocks[block].X*4;
-		  int Y = Blocks[block].Y*4;
+		  int X = BlocksR[block].X*4;
+		  int Y = BlocksR[block].Y*4;
 		  LCD_Write64bytes(X,Y,bts);
 	  }
 	  
@@ -717,6 +780,13 @@ void memory_test()
 }
 FATFS SD_FatFs;  /* File system object for SD card logical drive */
 char SD_Path[4]; /* SD card logical drive path */
+
+typedef union 
+{
+	u8 r[21];//C, B, E, D, L, H, F, A, IXL, IXH, IYL, IYH, SPL, SPH, PCL, PCH, MEMPTRL, MEMPTRH, I, R, R7
+	u16	rp[9];//BC, DE, HL, AF, IX, IY, SP, PC, MEMPTR
+}OldZReg;
+
 
 int readCard()
 {
@@ -846,7 +916,22 @@ int readCard()
 						      {
 							      f_read(&MyFile,&bt[0],32*3,&BytesRead);
 						      }
-						      f_read(&MyFile,&reg,sizeof(reg),&BytesRead);
+						      OldZReg oldReg;
+						      f_read(&MyFile,&oldReg,sizeof(oldReg),&BytesRead);
+						      A =  	oldReg.r[7];
+						      F =  	oldReg.r[6];
+						      BC =  oldReg.rp[0];
+						      DE =  oldReg.rp[1];
+						      HL =  oldReg.rp[2];
+						      IX  = oldReg.rp[4];
+						      IY  = oldReg.rp[5];
+						      SP  = oldReg.rp[6];
+						      PC  = oldReg.rp[7];
+						      MEMPTR  = oldReg.rp[8];
+						      I = oldReg.r[18];
+						      R = oldReg.r[19];
+						      R7 = oldReg.r[20];
+						      
 						      f_read(&MyFile,&reg_,sizeof(reg_),&BytesRead);
 						      u8 tmp;
 						      f_read(&MyFile,&tmp,sizeof(tmp),&BytesRead);
@@ -940,7 +1025,7 @@ void LCD_Write8x8line(uint16_t x1, uint16_t y1,uint8_t * adress) ;
 void LCD_FullRect3(uint16_t x1, uint16_t y1,uint8_t * adress,uint16_t w,uint16_t h) ;
 int32_t  tickperv =-1000;
 int32_t  dtickperv = 0;
-void z80_interp();
+//~ void z80_interp();
 int   inPause = 0;
 void mloop()
 {
@@ -975,10 +1060,6 @@ void mloop()
 	}
 	uint32_t tickCurrent =  HAL_GetTick();
 	//~ LCD_Draw_Text("C",80,60, BLACK, 1,GREEN);
-	while(HAL_GetTick()-tickstart<20)
-	{
-		HAL_Delay(1);
-	}
 		
 	flagg = 0;
 	
@@ -1088,7 +1169,7 @@ void mloop()
 #endif				
 		
 		clearAttr();	
-		clearKeys();
+		//~ clearKeys();
 	}
 	//~ LCD_Draw_Text("F",80,60, BLACK, 1,GREEN);
 	screen_IRQ = 1;
@@ -1107,7 +1188,7 @@ void mloop()
 	{
 	const uint16_t yScr = (240-192)/2-4;
 	const uint16_t xScr = (320-256)/2-4;
-	int i;	
+	//~ int i;	
 	if(!inPause)
 	{
 		u16 ks = keyScan();
@@ -1159,12 +1240,16 @@ void mloop()
 		{
 			LCD_Draw_Text("Kempston  ",xScr+64,yScr+16, BLACK, 2,GREEN);
 		}
-		
+		clearKeys();
 	}
 	
 	LCD_Draw_Text(printNum(time_is1),xScr,yScr, BLACK, 1,GREEN);
-	LCD_Draw_Text(printNum16_2(keyScan()),xScr,yScr+8, BLACK, 1,GREEN);
+	//~ LCD_Draw_Text(printNum16_2(keyScan()),xScr,yScr+8, BLACK, 1,GREEN);
 		
+	}
+	while(HAL_GetTick()-tickstart<20)
+	{
+		HAL_Delay(1);
 	}
 #ifdef CHECK_SUMM	
 	LCD_Draw_Text(printNum16(timeTick),80,80, BLACK, 1,GREEN);

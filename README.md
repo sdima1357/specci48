@@ -8,3 +8,5 @@ Seems that not every board the same , part of them 64K and maximum freq 72MHz an
 Older board (same price) has  128K flash and 112MHz and RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL14;
 Anyway if it not works,try to reduce PLL freq.
 
+On ili9341 board You must close(short) jumper J1 to 3.3v .Check board documentation... 5 volt can damage your stm32
+Touch,Display and SD card use common (3 wire CLK,MISO,MOSI) SPI1 interface. Chip selects are different.

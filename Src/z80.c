@@ -106,7 +106,7 @@ void z80_interrupt(void)
 		}
 		else	if(IM==2)
 		{
-			uint16_t addr = (((uint16_t)I)<<8)|0xfe;
+			uint16_t addr = (((uint16_t)I)<<8)|0xff;
 			uint16_t jmp_addr=peek16(addr);
 			//~ printf("addr = %4x %4x\n",addr,jmp_addr);
 			RST(jmp_addr);

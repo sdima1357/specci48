@@ -394,17 +394,17 @@ struct block
 #define BlocksR  Blocks
 #define NUM_LINES (112)
 #else
-#define NUM_LINES (130)
+#define NUM_LINES (132)
 #endif
 
 struct cacheLinePool
 {
 	uint8_t    cacheLine[64];
 	uint16_t  currentBlockNumber;
-	uint32_t  lastTimeTick;
+	int32_t  lastTimeTick;
 }  Lines[NUM_LINES];
 
-uint32_t  timeTick = 0;
+//~ uint32_t  timeTick = 0;
 
 
 #ifndef ROM_BLOCKS_ADDR				
@@ -477,127 +477,60 @@ ENOU:
 	}
 }
 
-
-int  findOldestLine()
+struct cacheLinePool*  writeCache64bIfmodifiedThenRead(int blockNumber)
 {
-		// find oldest line for commit
+	// find oldest line
 	int   oldestLineIndex = 0;
-	uint32_t timediff       = 0;
+	int32_t timediff       = 0;
 	int k;
 	for(k=0;k<NUM_LINES;k++)
 	{
-		uint32_t diffval = timeTick-Lines[k].lastTimeTick;
+		int32_t diffval = tstates-Lines[k].lastTimeTick;
 		if(diffval>timediff)
 		{
 			timediff = diffval;
 			oldestLineIndex = k;
 		}
 	}
-	return oldestLineIndex;
-}
-
-void writeCache64bIfmodified(uint16_t blockNumber,uint8_t * data)
-{
-	if(Blocks[blockNumber].flag_line&MODIFIED)
+	
+	struct cacheLinePool* line = &Lines[oldestLineIndex];
+        // save line content if modified 	
+	if(Blocks[line->currentBlockNumber].flag_line&MODIFIED)
 	{
-		uint16_t X = (BlocksR[blockNumber].X)*4;
-		uint16_t Y = (BlocksR[blockNumber].Y)*4;
-		LCD_Write64bytes(X,Y,data);
+		uint16_t X = (BlocksR[line->currentBlockNumber].X)*4;
+		uint16_t Y = (BlocksR[line->currentBlockNumber].Y)*4;
+		LCD_Write64bytes(X,Y,line->cacheLine);
 #ifdef CHECK_SUMM		
 		missSaveMemory++;
 #endif		
 	}
-	// just clear flags;
-	Blocks[blockNumber].flag_line = 0; 
-}
-void readCache64b(uint16_t blockNumber,uint8_t * data,uint16_t lineNum)
-{
+	// just clear flags on saved memory;
+	Blocks[line->currentBlockNumber].flag_line = 0; 
+	
+// read	
 	uint16_t X = (BlocksR[blockNumber].X)*4;
 	uint16_t Y = (BlocksR[blockNumber].Y)*4;
 	
-	LCD_Read64bytes(X,Y,data);
+	LCD_Read64bytes(X,Y,line->cacheLine);
 #ifdef CHECK_SUMM	
 	missReadMemory++;
 #endif	
-	Blocks[blockNumber].flag_line = EXIST|lineNum; 
+	Blocks[blockNumber].flag_line = EXIST | oldestLineIndex; 
+	line->currentBlockNumber = blockNumber;
+	return line;	
 }
 
-/*
-uint8_t readByte(uint16_t adress)
-{
-	timeTick++;
-	uint16_t blockAdress          =  (adress-0x5B00)>>6;
-	struct block* bl                 = &Blocks[blockAdress];
-	struct cacheLinePool* line = &Lines[bl->flag_line&0x1ff];
-	if(!(bl->flag_line&EXIST))
-	{
-		int oldestLineIndex = findOldestLine();
-		// commit line to extern mem if it touched
-		line = &Lines[oldestLineIndex];
-		writeCache64bIfmodified(line->currentBlockNumber,line->cacheLine);
-		// read right line from extern mem && mark as last read
-		//~ 
-		readCache64b(blockAdress,line->cacheLine,oldestLineIndex);
-		line->currentBlockNumber = blockAdress;
-		// 
-		
-	}
-	//mark as last read
-	line->lastTimeTick = timeTick;
-	return line->cacheLine[adress&0x3f];
-}
-*/
-/*
-void writeByte(uint16_t adress,uint8_t data)
-{
-	timeTick++;
-	uint16_t blockAdress =  (adress-0x5B00)>>6;
-	struct block* bl =        &Blocks[blockAdress];
-	struct cacheLinePool* line = &Lines[bl->flag_line&0x1ff];
-	if(!(bl->flag_line&EXIST))
-	{
-		
-		// find oldest line for commit
-		int oldestLineIndex = findOldestLine();
-		// commit line to extern mem if it touched
-		line = &Lines[oldestLineIndex];
-		writeCache64bIfmodified(line->currentBlockNumber,line->cacheLine);
-		// read right line from extern mem && mark as last read
-		//~ 
-		readCache64b(blockAdress,line->cacheLine,oldestLineIndex);
-		line->currentBlockNumber = blockAdress;
-		// 
-	}
-	line->lastTimeTick = timeTick;
-	line->cacheLine[adress&0x3f] = data;
-	bl->flag_line|=MODIFIED;//|TO_DISPLAY;
-}
-*/
 u8  peek(uint16_t addr) 
 {
 	u8 res;
 	if(addr>=0x5B00)
 	{
-		timeTick++;
+		//~ timeTick++;
 		uint16_t blockAdress          =  (addr-0x5B00)>>6;
-		//~ struct block* bl                 = &Blocks[blockAdress];
 		uint16_t flag_line = Blocks[blockAdress].flag_line;
-		struct cacheLinePool* line = &Lines[flag_line&0x1ff];
-		if(!(flag_line&EXIST))
-		{
-			int oldestLineIndex = findOldestLine();
-			// commit line to extern mem if it touched
-			line = &Lines[oldestLineIndex];
-			writeCache64bIfmodified(line->currentBlockNumber,line->cacheLine);
-			// read right line from extern mem && mark as last read
-			//~ 
-			readCache64b(blockAdress,line->cacheLine,oldestLineIndex);
-			line->currentBlockNumber = blockAdress;
-			// 
-			
-		}
+		struct cacheLinePool* line = (flag_line&EXIST)?&Lines[flag_line&0xff]:writeCache64bIfmodifiedThenRead(blockAdress);
 		//mark as last read
-		line->lastTimeTick = timeTick;
+		line->lastTimeTick = tstates;
 		res = line->cacheLine[addr&0x3f];
 	}
 	else if (addr>=0x4000)
@@ -614,29 +547,14 @@ void  poke(uint16_t addr,uint8_t value)
 {
 	if(addr>=0x5B00)
 	{
-		timeTick++;
+		//~ timeTick++;
 		uint16_t blockAdress =  (addr-0x5B00)>>6;
 		uint16_t flag_line = Blocks[blockAdress].flag_line;
-		struct cacheLinePool* line = &Lines[flag_line&0x1ff];
-		if(!(flag_line&EXIST))
-		{
-			
-			// find oldest line for commit
-			int oldestLineIndex = findOldestLine();
-			// commit line to extern mem if it touched
-			line = &Lines[oldestLineIndex];
-			writeCache64bIfmodified(line->currentBlockNumber,line->cacheLine);
-			// read right line from extern mem && mark as last read
-			//~ 
-			readCache64b(blockAdress,line->cacheLine,oldestLineIndex);
-			line->currentBlockNumber = blockAdress;
-			// 
-		}
-		line->lastTimeTick = timeTick;
+		struct cacheLinePool* line = ((flag_line&EXIST))?&Lines[flag_line&0xff]:writeCache64bIfmodifiedThenRead(blockAdress);
+		
+		line->lastTimeTick = tstates;
 		line->cacheLine[addr&0x3f] = value;
 		Blocks[blockAdress].flag_line |= MODIFIED;
-		//~ bl->flag_line;//|TO_DISPLAY;
-		//~ writeByte(addr,value);
 	}
 	else if(addr>=0x4000)
 	{
@@ -787,6 +705,51 @@ typedef union
 	u16	rp[9];//BC, DE, HL, AF, IX, IY, SP, PC, MEMPTR
 }OldZReg;
 
+int readDirIntoList()
+{
+	FILINFO 	MyFileInfo;
+	DIR 		MyDirectory;
+	FRESULT 	res;
+	res = f_opendir(&MyDirectory,SD_Path);
+	int files = 0;
+	if(res == FR_OK)
+	{
+		for (;;)
+		{
+			      res = f_readdir(&MyDirectory, &MyFileInfo);
+			      if(res != FR_OK || MyFileInfo.fname[0] == 0) 
+				break;
+			      //~ if(numFiles<LCD_getHeight()/CHAR_HEIGHT-2)
+			      {
+				      if(files<NUM_LINES)
+				      {
+					      strcpy(Lines[files].cacheLine,MyFileInfo.fname);
+					      files++;
+				      }
+				      //~ const uint16_t yScr = (240-192)/2-4;
+				      //~ const uint16_t xScr = (320-256)/2-4;
+				      //~ int lp = (snumFiles-baseline);
+				      //~ if(lp>=0&&lp<192/8-1)
+				      //~ {
+						//~ LCD_Draw_Text(MyFileInfo.fname,xScr,yScr+(snumFiles-baseline)*8, GREEN, 1, (selection==snumFiles)?YELLOW:BLACK);
+				      //~ }
+			      }
+		}
+      }
+	else if(res==FR_NO_FILESYSTEM)
+	{
+		//~ LCD_Draw_Text("format?",10,130, GREEN, 2, BLACK);
+	}
+	else
+	{
+		//~ LCD_Draw_Text("open fail",10,130, GREEN, 2, BLACK);
+	}
+        f_closedir(&MyDirectory);
+        return files;
+}
+
+int baseline = 0;  
+int selection = 0;  
 
 int readCard()
 {
@@ -824,9 +787,299 @@ int readCard()
 	//~ HAL_Delay(1000);
   //~ MX_FATFS_Init();
 	clearFullScreen();
-	FRESULT 	res;
-	FILINFO 	MyFileInfo;
-	DIR 		MyDirectory;
+	int rfiles =  readDirIntoList();
+	//~ HAL_Delay(1000);
+	int selNum = -1;  
+	const int NUmL =  192/8-1;
+	while(selNum<0)  
+	{
+		int k;
+		for(k = 0;k <NUmL;k++)
+		{
+			int n = baseline + k;
+			const uint16_t yScr = (240-192)/2-4;
+			const uint16_t xScr = (320-256)/2-4;
+			char buffer[0x11];
+			buffer[0x10] = 0;
+			int p;
+			int fl = 1;
+			for(p=0;p<0x10;p++)
+			{
+				if(fl&&Lines[n].cacheLine[p]&&(n<rfiles))
+				{
+					buffer[p] = Lines[n].cacheLine[p];
+				}
+				else
+				{
+					fl =0;
+					buffer[p] = ' ';
+				}
+			}
+			LCD_Draw_Text(buffer,xScr,yScr+(k)*8, GREEN, 1, (selection==n)?RED:BLACK);
+		}
+			HAL_Delay(150);
+			u16 ks = 0;
+			while(!ks)
+			{
+				ks = keyScan();
+				if(ks&0x10) //up
+				{
+					if(selection>0)	
+					{
+						selection--;
+					}
+					if(baseline>selection)
+					{
+						baseline--;	
+					}
+				}
+				if(ks&0x1)   //down
+				{
+					if(selection<rfiles-1)
+					{
+						selection++;
+					}
+					if(selection-NUmL+1>baseline)
+					{
+						baseline++;
+					}
+				}
+				if(ks&0x20) //fire
+				{
+					selNum = selection;
+				}
+			}
+	}
+	FIL 		MyFile;
+	if(f_open(&MyFile,Lines[selNum].cacheLine, FA_READ)==FR_OK)
+	{
+		clearFullScreen();
+		uint8_t bu8;
+		uint16_t bu16;
+		int version = 1; 
+		int isCompressed = 0;
+		MEMPTR = 0;
+		tstates = 11200;
+		interrupts_enabled_at = 0;
+		UINT BytesRead;
+		f_read(&MyFile,&bu8,1,&BytesRead); A = bu8;
+		f_read(&MyFile,&bu8,1,&BytesRead); F = bu8;
+		f_read(&MyFile,&BC,2,&BytesRead); 
+		f_read(&MyFile,&HL,2,&BytesRead); 
+		f_read(&MyFile,&PC,2,&BytesRead); 
+		if(PC==0)
+		{
+			version = 2; 
+		}
+		f_read(&MyFile,&SP,2,&BytesRead); 
+		f_read(&MyFile,&bu8,1,&BytesRead); I = bu8;
+		f_read(&MyFile,&bu8,1,&BytesRead); R = bu8;
+		f_read(&MyFile,&bu8,1,&BytesRead); R|=(bu8&1)<<7;
+		R7=R;
+		if(bu8&(1<<5))
+		{
+			isCompressed = 1;
+		}
+		f_read(&MyFile,&DE,2,&BytesRead); 
+		f_read(&MyFile,&BC_,2,&BytesRead); 
+		f_read(&MyFile,&DE_,2,&BytesRead); 
+		f_read(&MyFile,&HL_,2,&BytesRead); 
+		f_read(&MyFile,&bu8,1,&BytesRead); A_ = bu8;
+		f_read(&MyFile,&bu8,1,&BytesRead); F_ = bu8;
+		f_read(&MyFile,&IY,2,&BytesRead); 
+		f_read(&MyFile,&IX,2,&BytesRead); 
+		f_read(&MyFile,&bu8,1,&BytesRead); IFF1 = bu8;
+		f_read(&MyFile,&bu8,1,&BytesRead); IFF2 = bu8;
+		f_read(&MyFile,&bu8,1,&BytesRead); IM   = bu8&3;
+		halt = 0;
+		if(version==1)
+		{
+			int addr = 0x4000;
+			uint8_t rl;
+			if(!isCompressed)
+			{
+				//read 48K raw
+				int k;
+				for(k=0;k<0x10000-0x4000;k++)
+				{
+					f_read(&MyFile,&bu8,1,&BytesRead);
+					poke(addr,bu8);addr++;
+				}
+			}
+			else
+			{
+				while(addr<0x10000)
+				{
+					f_read(&MyFile,&bu8,1,&BytesRead);
+					if(BytesRead)
+					{
+						if(bu8==0xed)
+						{
+							f_read(&MyFile,&bu8,1,&BytesRead);
+							if(bu8==0xed)
+							{
+								f_read(&MyFile,&rl,1,&BytesRead);
+								f_read(&MyFile,&bu8,1,&BytesRead);
+								int k;
+								for(k=0;k<rl;k++)
+								{
+									poke(addr,bu8);addr++;
+								}
+							}
+							else
+							{
+								poke(addr,0xed);
+								addr++;
+								poke(addr,bu8);
+								addr++;
+							}
+						}
+						else 
+						{
+							poke(addr,bu8);
+							addr++;
+						}
+					}
+					else
+					{
+						//~ PRINT(addr);
+						addr = 0x10000;
+					}
+						
+				}
+			}
+			//~ PRINT(version);
+			//~ PRINT(isCompressed);
+			//~ return 1;
+			
+		}
+		else
+		{
+			f_read(&MyFile,&bu16,2,&BytesRead); 
+			if(bu16 == 23)
+			{
+				version = 2;
+			}
+			else if(bu16 == 54)
+			{
+				version = 3;
+			}
+			else if(bu16 == 55)
+			{
+				version = 4;
+			}
+			f_read(&MyFile,&PC,2,&BytesRead); 
+			int k;
+			for(k=0;k<5+0x10;k++)
+			{
+				f_read(&MyFile,&bu8,1,&BytesRead);
+			}
+			if(version>=3)
+			{
+				f_read(&MyFile,&bu16,2,&BytesRead); 
+				
+				f_read(&MyFile,&bu8,1,&BytesRead);
+				f_read(&MyFile,&bu8,1,&BytesRead);
+				f_read(&MyFile,&bu8,1,&BytesRead);
+				f_read(&MyFile,&bu8,1,&BytesRead);
+				f_read(&MyFile,&bu8,1,&BytesRead);
+				f_read(&MyFile,&bu8,1,&BytesRead);
+				for(k=0;k<10;k++)
+				{
+					f_read(&MyFile,&bu8,1,&BytesRead);
+				}
+				for(k=0;k<10;k++)
+				{
+					f_read(&MyFile,&bu8,1,&BytesRead);
+				}
+				f_read(&MyFile,&bu8,1,&BytesRead);
+				f_read(&MyFile,&bu8,1,&BytesRead);
+				f_read(&MyFile,&bu8,1,&BytesRead);
+				if(version==4)
+				{
+					f_read(&MyFile,&bu8,1,&BytesRead);
+				}
+			}
+			int p;
+			for(p=0;p<3;p++)
+			{
+				f_read(&MyFile,&bu16,2,&BytesRead); 
+				f_read(&MyFile,&bu8,1,&BytesRead); 
+				//~ ifs.read((char*)&bu16,2);  cout<<hex<<"size="<<int(bu16)<<"\n";  
+				//~ ifs.read((char*)&bu8,1);  cout<<hex<<"page="<<int(bu8)<<"\n";  
+				int addr = 0x4000;
+				if(bu8==4)
+				{
+					addr = 0x8000;
+				}
+				else if(bu8==5)
+				{
+					addr = 0xc000;
+				}
+				else if(bu8==8)
+				{
+					addr = 0x4000;
+				}
+				if(bu16==0xffff)
+				{
+					for(k=0;k<0x4000;k++)
+					{
+						//~ ifs.read((char*)&bu8,1); 
+						f_read(&MyFile,&bu8,1,&BytesRead); 
+						poke(addr,bu8);addr++;
+					}
+				}
+				else
+				{
+					int bytes = 0;
+					uint8_t rl;
+					while(bytes<bu16)
+					{
+						f_read(&MyFile,&bu8,1,&BytesRead);   bytes++;
+						if(bu8==0xed)
+						{
+							f_read(&MyFile,&bu8,1,&BytesRead);   bytes++;
+							if(bu8==0xed)
+							{
+								f_read(&MyFile,&rl,1,&BytesRead); ; bytes++;
+								f_read(&MyFile,&bu8,1,&BytesRead);  bytes++;
+								for(k=0;k<rl;k++)
+								{
+									poke(addr,bu8);addr++;
+								}
+							}
+							else
+							{
+								poke(addr,0xed);
+								addr++;
+								poke(addr,bu8);
+								addr++;
+							}
+						}
+						else 
+						{
+							poke(addr,bu8);
+							addr++;
+						}
+					}
+				}
+			}
+			
+		}
+		
+		f_close(&MyFile);
+		f_mount(NULL,SD_Path, 0);
+		FATFS_UnLinkDriver(SD_Path);
+		return 1;	
+		
+	}
+	f_mount(NULL,SD_Path, 0);
+	FATFS_UnLinkDriver(SD_Path);
+	return 0;
+	  
+	  
+#if 0
+	  FRESULT 	res;
 	FIL 		MyFile;
 	//~ int num = FATFS_GetAttachedDriversNbr();
 	//~ LCD_Draw_Text("drive:",10,0, GREEN, 1, BLACK);
@@ -834,7 +1087,10 @@ int readCard()
 	int numFiles = 0;
 	int snumFiles = 0;
 	int chooseNum = 0;
+	int baseline = 0;  
+	int selection = 0;  
 	int pass;
+	  
 	for(pass=0;pass<2;pass++)
 	{
 		if(pass)
@@ -881,7 +1137,16 @@ int readCard()
 		break;
 	      //~ if(numFiles<LCD_getHeight()/CHAR_HEIGHT-2)
 	      {
+		      const uint16_t yScr = (240-192)/2-4;
+		      const uint16_t xScr = (320-256)/2-4;
+		      int lp = (snumFiles-baseline);
+		      if(lp>=0&&lp<192/8-1)
+		      {
+				LCD_Draw_Text(MyFileInfo.fname,xScr,yScr+(snumFiles-baseline)*8, GREEN, 1, (selection==snumFiles)?YELLOW:BLACK);
+		      }
 		      snumFiles++;
+		      numFiles++;
+		      /*
 		      if(strncasecmp(MyFileInfo.fname,"SP",2)==0)
 		      {
 			      if(f_open(&MyFile,MyFileInfo.fname, FA_READ)==FR_OK)
@@ -966,7 +1231,9 @@ int readCard()
 			      }
 			      
 		      }
+	      */
 	      }
+	      
 	      //~ numFiles++;
 	      //~ HAL_Delay(10);
             }
@@ -981,10 +1248,11 @@ int readCard()
 		//~ LCD_Draw_Text("open fail",10,130, GREEN, 2, BLACK);
 	}
 	}
-	f_mount(NULL,SD_Path, 0);
-	FATFS_UnLinkDriver(SD_Path);
+#endif	
+	//~ f_mount(NULL,SD_Path, 0);
+	//~ FATFS_UnLinkDriver(SD_Path);
 		//~ z80_reset(1);
-	return  0;
+	//~ return  0;
       	
 }
 void TP_init_default();
@@ -1015,6 +1283,7 @@ void minit()
 		clearFullScreen();
 		z80_reset(1);
 	}
+	//~ LCD_idle(1);
 #ifdef CHECK_SUMM	
 	checkerror = 0; 
 #endif	
@@ -1027,7 +1296,8 @@ int32_t  tickperv =-1000;
 int32_t  dtickperv = 0;
 //~ void z80_interp();
 int   inPause = 0;
-void mloop()
+void z80_interrupt(void);
+void mloop() 
 {
 	static uint16_t old_border =0xffff;
 				
@@ -1042,13 +1312,25 @@ void mloop()
 		//~ SPI_MASTER->CR1 &= ~SPI_CR1_SPE; // DISABLE SPI
 		//~ SPI_MASTER->CR1 |= SPI_CR1_SPE;  // ENABLE SPI
 		{
-			for(;tstates<69888;)
+			int tstop = tstates+69888;
+			for(;tstates<tstop;)
 			{ 
+				z80_interrupt();
 				z80_run();
 			}
 		}
-		tstates-=69888;
-		interrupts_enabled_at -=69888;
+		//~ tstates-=69888;
+		//~ interrupts_enabled_at -=69888;
+		if(tstates>0x40000000)
+		{
+			tstates-=0x40000000;
+			interrupts_enabled_at-=0x40000000;
+			int k;
+			for(k=0;k<NUM_LINES;k++)
+			{
+				Lines[k].lastTimeTick-=0x40000000;
+			}
+		}
 		//~ LCD_Draw_Text("B",80,60, BLACK, 1,GREEN);
 	}
 	else
@@ -1213,12 +1495,23 @@ void mloop()
 			joystickMode = (joystickMode+1)%5;
 			HAL_Delay(200);
 		}
-		else if(ks & (0x22))
+		else if(ks & (0x20))
 		{
 			inPause = 0;
 			setAttr();
 			old_border =0xffff;
 			HAL_Delay(200);
+		}
+		else if(ks & (0x2))
+		{
+			flagg     = 1;
+			inPause = 0;
+			old_border =0xffff;
+			if(!readCard())
+			{
+				clearFullScreen();
+				z80_reset(1);
+			}
 		}
 		if(joystickMode == 0)
 		{

@@ -87,41 +87,8 @@ tstates = 0;
 //~ {
 	
 //~ }
-void z80_run(void)
+void z80_interrupt(void)
 {
-union
-{
-	u8 u;
-	s8 s;
-}d;
-
-u8 temp8;
-u16 temp16;
-
-u8 opcode;
-
-u16 exx_temp;
-u32 add_temp;
-u32 sub_temp;
-u16 cp_temp;
-u8 bo_temp;
-
-u8 in_temp;
-u8 neg_temp;
-//~ u16 daa_temp;
-u8 rot_temp;
-
-u8 lookup;
-
-u8 n;
-u8 prefix;;
-u16 nn;
-//~ u16 tempR;
-int kk;
-
-//~ CONT:	
-	//~ if (halt==0)
-//~ u8   prefix     = 0;	
 	if (screen_IRQ&&IFF1&&(tstates > interrupts_enabled_at))
 	{
 		if(halt)
@@ -146,10 +113,59 @@ int kk;
 			//~ tstates+=m_cycle;
 		}
 		return;	
-	}
-	//~ const int rtable [] = {1,0,3,2,5,4,21,7};	//
+	} 
+}
+void z80_run(void)
+{
 
-for(kk=0;kk<8;kk++)
+	union
+{
+	u8 u;
+	s8 s;
+}d;
+
+u16 temp16;
+u8   temp8;
+u8   opcode;
+u8   lookup;
+u8   n;
+u8   prefix;
+u16 nn;
+//~ u16 tempR;
+int kk;
+
+//~ CONT:	
+	//~ if (halt==0)
+//~ u8   prefix     = 0;	
+	//~ const int rtable [] = {1,0,3,2,5,4,21,7};	//
+#if 0
+	if (screen_IRQ&&IFF1&&(tstates > interrupts_enabled_at))
+	{
+		if(halt)
+		{
+			PC++;
+			halt = 0;
+		}
+		IFF1=0;
+		IFF2=1;
+		screen_IRQ=0;
+		if(IM==1||IM==0)
+		{
+			RST(0x38);
+			//~ tstates+=m_cycle;
+		}
+		else	if(IM==2)
+		{
+			uint16_t addr = (((uint16_t)I)<<8)|0xff;
+			uint16_t jmp_addr=peek16(addr);
+			//~ printf("addr = %4x %4x\n",addr,jmp_addr);
+			RST(jmp_addr);
+			//~ tstates+=m_cycle;
+		}
+		return;	
+	} 
+#endif
+for(kk=0;kk<1024;kk++)
 {
 u16 m_cycle = 0;
 	opcode=NEXT_BYTE;

@@ -187,16 +187,15 @@ vpath %.c $(sort $(dir $(C_SOURCES)))
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
+
+#$(BUILD_DIR)/core.o: Src/core.c
+#	$(CC) -c $(CFLAGS) -Os -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+
+#$(BUILD_DIR)/smain.o: Src/smain.c
+#	$(CC) -c $(CFLAGS) -O2 -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+
 $(BUILD_DIR)/z80.o: Src/z80.c
 	$(CC) -c $(CFLAGS) -O2 -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
-
-$(BUILD_DIR)/core.o: Src/core.c
-	$(CC) -c $(CFLAGS) -Os -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
-
-
-$(BUILD_DIR)/smain.o: Src/smain.c
-	$(CC) -c $(CFLAGS) -O2 -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
-
 
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@

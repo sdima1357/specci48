@@ -409,6 +409,7 @@ case 0x3f:
 	T_WAIT_UNTIL(4);
 break;
 /*LD B, B*/
+case 0x47:
 case 0x40 ... 0x45:
 	LD(B, RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -447,11 +448,11 @@ case 0x46:
 	T_WAIT_UNTIL(7);
 break;
 /*LD B, A*/
-case 0x47:
-	LD(B, A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ LD(B, A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*LD C, B*/
+case 0x4f:
 case 0x48 ... 0x4d:
 	LD(C, RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -490,11 +491,11 @@ case 0x4e:
 	T_WAIT_UNTIL(7);
 break;
 /*LD C, A*/
-case 0x4f:
-	LD(C, A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ LD(C, A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*LD D, B*/
+case 0x57:
 case 0x50 ... 0x55:
 	LD(D, RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -533,11 +534,11 @@ case 0x56:
 	T_WAIT_UNTIL(7);
 break;
 /*LD D, A*/
-case 0x57:
-	LD(D, A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ LD(D, A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*LD E, B*/
+case 0x5f:
 case 0x58 ... 0x5d:
 	LD(E, RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -576,11 +577,11 @@ case 0x5e:
 	T_WAIT_UNTIL(7);
 break;
 /*LD E, A*/
-case 0x5f:
-	LD(E, A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ LD(E, A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*LD H, B*/
+case 0x67:
 case 0x60 ...0x65:
 	LD(H, RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -619,11 +620,11 @@ case 0x66:
 	T_WAIT_UNTIL(7);
 break;
 /*LD H, A*/
-case 0x67:
-	LD(H, A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ LD(H, A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*LD L, B*/
+case 0x6f:
 case 0x68 ... 0x6d:
 	LD(L, RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -662,11 +663,11 @@ case 0x6e:
 	T_WAIT_UNTIL(7);
 break;
 /*LD L, A*/
-case 0x6f:
-	LD(L, A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ LD(L, A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*LD (HL), B*/
+case 0x77:
 case 0x70 ...0x75:
 	LD(temp8, RC(opcode&7));
 	WRITE_BYTE((HL), temp8);
@@ -711,12 +712,12 @@ case 0x76:
 	T_WAIT_UNTIL(4);
 break;
 /*LD (HL), A*/
-case 0x77:
-	LD(temp8, A);
-	WRITE_BYTE(HL, temp8);
-	T_WAIT_UNTIL(7);
-break;
+	//~ LD(temp8, A);
+	//~ WRITE_BYTE(HL, temp8);
+	//~ T_WAIT_UNTIL(7);
+//~ break;
 /*LD A, B*/
+case 0x7f:
 case 0x78 ... 0x7d:
 	LD(A, RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -755,11 +756,11 @@ case 0x7e:
 	T_WAIT_UNTIL(7);
 break;
 /*LD A, A*/
-case 0x7f:
-	LD(A, A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ LD(A, A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*ADD A, B*/
+case 0x87:
 case 0x80 ... 0x85:
 	ADD(A, RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -798,11 +799,11 @@ case 0x86:
 	T_WAIT_UNTIL(7);
 break;
 /*ADD A, A*/
-case 0x87:
-	ADD(A, A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ ADD(A, A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*ADDC A, B*/
+case 0x8f:
 case 0x88 ... 0x8d:
 	ADDC(A, RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -841,11 +842,11 @@ case 0x8e:
 	T_WAIT_UNTIL(7);
 break;
 /*ADDC A, A*/
-case 0x8f:
-	ADDC(A, A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ ADDC(A, A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*SUB B*/
+case 0x97:
 case 0x90 ... 0x95:
 	SUB(RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -884,11 +885,11 @@ case 0x96:
 	T_WAIT_UNTIL(7);
 break;
 /*SUB A*/
-case 0x97:
-	SUB(A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ SUB(A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*SUBC A, B*/
+case 0x9f:
 case 0x98 ... 0x9d:
 	SUBC(A, RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -927,11 +928,11 @@ case 0x9e:
 	T_WAIT_UNTIL(7);
 break;
 /*SUBC A, A*/
-case 0x9f:
-	SUBC(A, A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ SUBC(A, A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*AND B*/
+case 0xa7:
 case 0xa0 ... 0xa5:
 	AND(RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -970,11 +971,11 @@ case 0xa6:
 	T_WAIT_UNTIL(7);
 break;
 /*AND A*/
-case 0xa7:
-	AND(A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ AND(A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*XOR B*/
+case 0xaf:
 case 0xa8 ... 0xad:
 	XOR(RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -1013,11 +1014,11 @@ case 0xae:
 	T_WAIT_UNTIL(7);
 break;
 /*XOR A*/
-case 0xaf:
-	XOR(A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ XOR(A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*OR B*/
+case 0xb7:
 case 0xb0 ... 0xb5:
 	OR(RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -1056,11 +1057,11 @@ case 0xb6:
 	T_WAIT_UNTIL(7);
 break;
 /*OR A*/
-case 0xb7:
-	OR(A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ OR(A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*CP B*/
+case 0xbf:
 case 0xb8 ... 0xbd:
 	CP(RC(opcode&7));
 	T_WAIT_UNTIL(4);
@@ -1099,10 +1100,9 @@ case 0xbe:
 	T_WAIT_UNTIL(7);
 break;
 /*CP A*/
-case 0xbf:
-	CP(A);
-	T_WAIT_UNTIL(4);
-break;
+	//~ CP(A);
+	//~ T_WAIT_UNTIL(4);
+//~ break;
 /*RET NZ*/
 case 0xc0:
 	if(!(F&FLAG_Z))
@@ -1368,7 +1368,7 @@ case 0xdd:
 	prefix = NEXT_BYTE;
 	R++;
 #include "opcode_dd.c"
-	m_cycle+=4;
+	m_cycle+=8;
 }
 break;
 

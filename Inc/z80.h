@@ -196,26 +196,26 @@ extern ZINTRFlags IFlags;
 /*instructions EXCHANGE*/
 #define EXX() \
 { \
-	exx_temp=BC; BC=BC_; BC_=exx_temp; \
+	u16 exx_temp=BC; BC=BC_; BC_=exx_temp; \
 	exx_temp=DE; DE=DE_; DE_=exx_temp; \
 	exx_temp=HL; HL=HL_; HL_=exx_temp; \
 }
 
 #define EX(rp1, rp2) \
 { \
-	exx_temp=rp1; rp1=rp2; rp2=exx_temp; \
+	u16 exx_temp=rp1; rp1=rp2; rp2=exx_temp; \
 }
 
 #define EX_MPTR(rp1, rp2) \
 { \
-	exx_temp=rp1; rp1=rp2; rp2=exx_temp; \
+	u16 exx_temp=rp1; rp1=rp2; rp2=exx_temp; \
 	MEMPTR=exx_temp; \
 }
 
 /*instructions ALU*/
 #define ADD(a, value) \
 { \
-	add_temp=A+(value); \
+	u32 add_temp=A+(value); \
 	lookup=((A&0x88 )>>3 )|(((value)&0x88)>>2)|((add_temp&0x88)>>1);  \
 	A=add_temp; \
 	F=(add_temp&0x100?FLAG_C:0)|halfcarry_add_table[lookup&0x07]|overflow_add_table[lookup>>4]|sz53_table[A]; \
@@ -223,7 +223,7 @@ extern ZINTRFlags IFlags;
 
 #define SUB(value) \
 { \
-	sub_temp=A-(value); \
+	u32 sub_temp=A-(value); \
 	lookup=((A&0x88)>>3)|(((value)&0x88)>>2)|((sub_temp&0x88)>>1); \
 	A=sub_temp; \
 	F=(sub_temp&0x100?FLAG_C:0)|FLAG_N|halfcarry_sub_table[lookup&0x07]|overflow_sub_table[lookup>>4]|sz53_table[A]; \
@@ -231,7 +231,7 @@ extern ZINTRFlags IFlags;
 
 #define ADD16(value1, value2) \
 { \
-	add_temp=(value1)+(value2); \
+	u32 add_temp=(value1)+(value2); \
 	lookup=(((value1)&0x0800)>>11)|(((value2)&0x0800)>>10)|((add_temp&0x0800)>>9 );  \
 	MEMPTR=value1+1; \
 	(value1)=add_temp; \
@@ -263,7 +263,7 @@ extern ZINTRFlags IFlags;
 
 #define ADDC(a, value) \
 { \
-	add_temp=A+(value)+(F&FLAG_C); \
+	u32 add_temp=A+(value)+(F&FLAG_C); \
 	lookup=((A&0x88)>>3)|(((value)&0x88)>>2 )|((add_temp&0x88)>>1); \
 	A=add_temp; \
 	F=(add_temp&0x100?FLAG_C:0)|halfcarry_add_table[lookup & 0x07]|overflow_add_table[lookup>>4]|sz53_table[A]; \
@@ -271,7 +271,7 @@ extern ZINTRFlags IFlags;
 
 #define ADDC16(hl, value) \
 { \
-	add_temp=HL+(value)+(F&FLAG_C); \
+	u32 add_temp=HL+(value)+(F&FLAG_C); \
 	lookup=((HL&0x8800)>>11)|(((value)&0x8800)>>10)|((add_temp&0x8800)>>9); \
 	MEMPTR=hl+1; \
 	HL=add_temp; \
@@ -280,7 +280,7 @@ extern ZINTRFlags IFlags;
 
 #define SUBC(a, value) \
 { \
-	sub_temp=A-(value)-(F&FLAG_C); \
+	u32 sub_temp=A-(value)-(F&FLAG_C); \
 	lookup=((A&0x88)>>3)|(((value)&0x88)>>2)|((sub_temp&0x88)>>1); \
 	A=sub_temp;\
 	F=(sub_temp&0x100?FLAG_C:0)|FLAG_N|halfcarry_sub_table[lookup&0x07]|overflow_sub_table[lookup>>4]|sz53_table[A]; \
@@ -288,7 +288,7 @@ extern ZINTRFlags IFlags;
 
 #define SUBC16(hl, value) \
 { \
-	sub_temp=HL-(value)-(F&FLAG_C); \
+	u32 sub_temp=HL-(value)-(F&FLAG_C); \
 	lookup=((HL&0x8800)>>11)|(((value)&0x8800)>>10)|((sub_temp&0x8800)>>9); \
 	MEMPTR=hl+1; \
 	HL=sub_temp; \
@@ -297,7 +297,7 @@ extern ZINTRFlags IFlags;
 
 #define CP(value) \
 { \
-	cp_temp=A-(value); \
+	u16 cp_temp=A-(value); \
 	lookup=((A&0x88)>>3)|(((value)&0x88)>>2)|((cp_temp&0x88)>>1); \
 	F=(cp_temp&0x100?FLAG_C:(cp_temp?0:FLAG_Z))|FLAG_N|halfcarry_sub_table[lookup&0x07]|overflow_sub_table[lookup>>4]|((value)&(FLAG_3|FLAG_5))|(cp_temp&FLAG_S); \
 }
@@ -374,7 +374,7 @@ extern ZINTRFlags IFlags;
 /*instructions LOAD BLOCK*/
 #define LDI() \
 { \
-	bo_temp=READ_BYTE(HL); \
+	u8 bo_temp=READ_BYTE(HL); \
 	WRITE_BYTE(DE, bo_temp); \
 	BC--; \
 	DE++; \
@@ -385,7 +385,7 @@ extern ZINTRFlags IFlags;
 
 #define LDD() \
 { \
-	bo_temp=READ_BYTE(HL); \
+	u8 bo_temp=READ_BYTE(HL); \
 	WRITE_BYTE(DE, bo_temp); \
 	BC--; \
 	DE--; \
@@ -396,7 +396,7 @@ extern ZINTRFlags IFlags;
 
 #define LDIR() \
 { \
-	bo_temp=READ_BYTE(HL); \
+	u8 bo_temp=READ_BYTE(HL); \
 	WRITE_BYTE(DE, bo_temp); \
 	BC--; \
 	DE++; \
@@ -417,7 +417,7 @@ extern ZINTRFlags IFlags;
 
 #define LDDR() \
 { \
-	bo_temp=READ_BYTE(HL); \
+	u8 bo_temp=READ_BYTE(HL); \
 	WRITE_BYTE(DE, bo_temp); \
 	BC--; \
 	DE--; \
@@ -439,8 +439,8 @@ extern ZINTRFlags IFlags;
 /*instructions COMPARE BLOCK*/
 #define CPI(rd) \
 { \
-	bo_temp=READ_BYTE(HL); \
-	cp_temp=A-bo_temp; \
+	u8 bo_temp=READ_BYTE(HL); \
+	u16 cp_temp=A-bo_temp; \
 	lookup=((A&0x08)>>3)|((bo_temp&0x08 )>>2)|((cp_temp&0x08)>>1); \
 	HL++; \
 	BC--; \
@@ -455,8 +455,8 @@ extern ZINTRFlags IFlags;
 
 #define CPD(rd) \
 { \
-	bo_temp=READ_BYTE(HL); \
-	cp_temp=A-bo_temp; \
+	u8 bo_temp=READ_BYTE(HL); \
+	u16 cp_temp=A-bo_temp; \
 	lookup=((A&0x08)>>3)|((bo_temp&0x08 )>>2)|((cp_temp&0x08)>>1); \
 	HL--; \
 	BC--; \
@@ -471,8 +471,8 @@ extern ZINTRFlags IFlags;
 
 #define CPIR() \
 { \
-	bo_temp=READ_BYTE(HL); \
-	cp_temp=A-bo_temp; \
+	u8 bo_temp=READ_BYTE(HL); \
+	u16 cp_temp=A-bo_temp; \
 	lookup=((A&0x08)>>3)|((bo_temp&0x08 )>>2)|((cp_temp&0x08)>>1); \
 	HL++; \
 	BC--; \
@@ -497,8 +497,8 @@ extern ZINTRFlags IFlags;
 
 #define CPDR() \
 { \
-	bo_temp=READ_BYTE(HL); \
-	cp_temp=A-bo_temp; \
+	u8 bo_temp=READ_BYTE(HL); \
+	u16 cp_temp=A-bo_temp; \
 	lookup=((A&0x08)>>3)|((bo_temp&0x08 )>>2)|((cp_temp&0x08)>>1); \
 	HL--; \
 	BC--; \
@@ -538,7 +538,7 @@ extern ZINTRFlags IFlags;
 
 #define IN_F(port) \
 { \
-	in_temp=READ_PORT(port); \
+	u8 in_temp=READ_PORT(port); \
 	F=(F& FLAG_C)|sz53p_table[in_temp]; \
 	MEMPTR=port+1; \
 }
@@ -546,7 +546,7 @@ extern ZINTRFlags IFlags;
 #define INI() \
 { \
 	MEMPTR=BC+1; \
-	bo_temp=READ_PORT(BC); \
+	u8 bo_temp=READ_PORT(BC); \
 	WRITE_BYTE(HL, bo_temp); \
 	B--; \
 	HL++; \
@@ -557,7 +557,7 @@ extern ZINTRFlags IFlags;
 #define IND() \
 { \
 	MEMPTR=BC-1; \
-	bo_temp=READ_PORT(BC); \
+	u8 bo_temp=READ_PORT(BC); \
 	WRITE_BYTE(HL, bo_temp); \
 	B--; \
 	HL--; \
@@ -567,7 +567,7 @@ extern ZINTRFlags IFlags;
 
 #define INIR() \
 { \
-	bo_temp=READ_PORT(BC); \
+	u8 bo_temp=READ_PORT(BC); \
 	WRITE_BYTE(HL, bo_temp); \
 	MEMPTR=BC+1; \
 	B--; \
@@ -587,7 +587,7 @@ extern ZINTRFlags IFlags;
 
 #define INDR() \
 { \
-	bo_temp=READ_PORT(BC); \
+	u8 bo_temp=READ_PORT(BC); \
 	WRITE_BYTE(HL, bo_temp); \
 	MEMPTR=BC-1;\
 	B--; \
@@ -629,7 +629,7 @@ extern ZINTRFlags IFlags;
 
 #define OUTI() \
 { \
-	bo_temp=READ_BYTE(HL); \
+	u8 bo_temp=READ_BYTE(HL); \
 	B--; \
 	MEMPTR=BC+1; \
 	WRITE_PORT(BC, bo_temp); \
@@ -640,7 +640,7 @@ extern ZINTRFlags IFlags;
 
 #define OUTD() \
 { \
-	bo_temp=READ_BYTE(HL); \
+	u8 bo_temp=READ_BYTE(HL); \
 	B--; \
 	MEMPTR=BC-1; \
 	WRITE_PORT(BC, bo_temp); \
@@ -651,7 +651,7 @@ extern ZINTRFlags IFlags;
 
 #define OTIR() \
 { \
-	bo_temp=READ_BYTE(HL); \
+	u8 bo_temp=READ_BYTE(HL); \
 	B--; \
 	MEMPTR=BC+1; \
 	WRITE_PORT(BC, bo_temp); \
@@ -671,7 +671,7 @@ extern ZINTRFlags IFlags;
 
 #define OTDR() \
 { \
-	bo_temp=READ_BYTE(HL); \
+	u8 bo_temp=READ_BYTE(HL); \
 	B--; \
 	MEMPTR=BC-1; \
 	WRITE_PORT(BC, bo_temp); \
@@ -733,7 +733,7 @@ extern ZINTRFlags IFlags;
 
 #define NEG() \
 { \
-	neg_temp=A; \
+	u8 neg_temp=A; \
 	A=0; \
 	SUB(neg_temp); \
 }
@@ -784,14 +784,14 @@ extern ZINTRFlags IFlags;
 
 #define RL(value) \
 { \
-	rot_temp=(value); \
+	u8 rot_temp=(value); \
 	(value)=((value)<<1)|( F & FLAG_C ); \
 	F=(rot_temp>>7)|sz53p_table[(value)]; \
 }
 
 #define RR(value) \
 { \
-	rot_temp=(value); \
+	u8 rot_temp=(value); \
 	(value)=((value)>>1)|(F<<7); \
 	F=(rot_temp&FLAG_C)|sz53p_table[(value)]; \
 }
@@ -811,14 +811,14 @@ extern ZINTRFlags IFlags;
 
 #define RLA() \
 { \
-	rot_temp=A; \
+	u8 rot_temp=A; \
 	A=(A<<1)|(F&FLAG_C); \
 	F=(F&(FLAG_P|FLAG_Z|FLAG_S))|(A&(FLAG_3|FLAG_5))|(rot_temp>>7); \
 }
 
 #define RRA() \
 { \
-	rot_temp=A; \
+	u8 rot_temp=A; \
 	A=(A>>1)|(F<<7); \
 	F=(F&(FLAG_P|FLAG_Z|FLAG_S))|(A&(FLAG_3|FLAG_5))|(rot_temp&FLAG_C); \
 }
@@ -838,7 +838,7 @@ extern ZINTRFlags IFlags;
 
 #define RRD() \
 { \
-	rot_temp=READ_BYTE(HL); \
+	u8 rot_temp=READ_BYTE(HL); \
 	WRITE_BYTE(HL, (A<<4)|(rot_temp>>4)); \
 	A=(A&0xf0)|(rot_temp&0x0f); \
 	F=(F&FLAG_C)|sz53p_table[A]; \
@@ -847,7 +847,7 @@ extern ZINTRFlags IFlags;
 
 #define RLD() \
 { \
-	rot_temp=READ_BYTE(HL); \
+	u8 rot_temp=READ_BYTE(HL); \
 	WRITE_BYTE(HL, (rot_temp<<4)|(A&0x0f)); \
 	A=(A&0xf0)|(rot_temp>>4); \
 	F=(F&FLAG_C)|sz53p_table[A]; \

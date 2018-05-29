@@ -112,7 +112,7 @@ int kk;
 			halt = 0;
 		}
 		IFF1=0;
-		IFF2=1;
+		//~ IFF2=1;
 		screen_IRQ=0;
 		if(IM==1||IM==0)
 		{
@@ -131,7 +131,7 @@ int kk;
 	}
 	//~ const int rtable [] = {1,0,3,2,5,4,21,7};	//
 
-for(kk=0;kk<1;kk++)
+for(kk=0;kk<2048;kk++)
 {
 u16 m_cycle = 0;
 	opcode=NEXT_BYTE;

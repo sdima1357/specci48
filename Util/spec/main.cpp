@@ -10,8 +10,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-
+int joystickMode = 0;
+int kempston = 0;
+int ftime = 0;
 #define PRINT(x) std::cout<<""<<std::setw(15)<<(x)<<" " #x "\n"
 using namespace std;
 //~ #include <nvGlutManipulators.h>
@@ -38,7 +39,7 @@ extern "C"
 extern uint8_t IsPressed[][8];
 extern int32_t tstates ;
 extern int32_t interrupts_enabled_at;
-uint8_t	Kempston = 0;
+//~ uint8_t	Kempston = 0;
 	
 void poke(u16 addr, u8 value)
 { 
@@ -78,7 +79,7 @@ u8 in(u16 port)
 	u8 input=0xff;
 	if ((port&0x00FF)==31)
 	{
-		return 0;
+		return kempston;
 	}
 	if ((port&0x00FF)==0xFE)//перехват порта 0xFE
 	{
@@ -181,8 +182,8 @@ int my80_read(const char* filename)
 	ifs.read((char*)&bu8,1);  cout<<hex<<"A_="<<int(bu8)<<"\n";         A_ = bu8;
 	ifs.read((char*)&bu8,1);  cout<<hex<<"F_="<<int(bu8)<<"\n";         F_ = bu8;
 	
-	ifs.read((char*)&bu16,2);  cout<<hex<<"IX="<<int(bu16)<<"\n";     IY = bu16;
-	ifs.read((char*)&bu16,2);  cout<<hex<<"IY="<<int(bu16)<<"\n";     IX = bu16;	
+	ifs.read((char*)&bu16,2);  cout<<hex<<"IY="<<int(bu16)<<"\n";     IY = bu16;
+	ifs.read((char*)&bu16,2);  cout<<hex<<"IX="<<int(bu16)<<"\n";     IX = bu16;	
 	
 	ifs.read((char*)&bu8,1);  cout<<hex<<"IFF1="<<int(bu8)<<"\n";      IFF1 = bu8;
 	ifs.read((char*)&bu8,1);  cout<<hex<<"IFF2="<<int(bu8)<<"\n";	IFF2 = bu8;
@@ -191,6 +192,7 @@ int my80_read(const char* filename)
 	
 	if(version>1)
 	{
+		int b128 = false;
 		ifs.read((char*)&bu16,2);  cout<<dec<<"ADD LENGTH="<<int(bu16)<<"\n";
 		if(bu16 == 23)
 		{
@@ -206,6 +208,11 @@ int my80_read(const char* filename)
 		}
 		ifs.read((char*)&bu16,2);  cout<<hex<<"PC="<<int(bu16)<<"\n";  PC = bu16;
 		ifs.read((char*)&bu8,1);  cout<<hex<<"34="<<int(bu8)<<"\n";      
+		if(bu8>1)
+		{
+			//?128
+			b128 = true;
+		}
 		ifs.read((char*)&bu8,1);  cout<<hex<<"35="<<int(bu8)<<"\n";      
 		ifs.read((char*)&bu8,1);  cout<<hex<<"36="<<int(bu8)<<"\n";      
 		ifs.read((char*)&bu8,1);  cout<<hex<<"37="<<int(bu8)<<"\n";      
@@ -233,62 +240,84 @@ int my80_read(const char* filename)
 			}
 		}	
 		// read 3 pages
-		for(int p=0;p<3;p++)
+		for(int p=0;p<8;p++)
 		{
 			ifs.read((char*)&bu16,2);  cout<<hex<<"size="<<int(bu16)<<"\n";  
 			ifs.read((char*)&bu8,1);  cout<<hex<<"page="<<int(bu8)<<"\n";  
-			int addr = 0x4000;
-			if(bu8==4)
+			int addr = 0x0000;
+			if(!b128)
 			{
-				addr = 0x8000;
-			}
-			else if(bu8==5)
-			{
-				addr = 0xc000;
-			}
-			else if(bu8==8)
-			{
-				addr = 0x4000;
-			}
-			if(bu16==0xffff)
-			{
-				for(int k=0;k<0x4000;k++)
+				if(bu8==4)
 				{
-					ifs.read((char*)&bu8,1); 
-					poke(addr,bu8);addr++;
+					addr = 0x8000;
+				}
+				else if(bu8==5)
+				{
+					addr = 0xc000;
+				}
+				else if(bu8==8)
+				{
+					addr = 0x4000;
 				}
 			}
 			else
 			{
-				int bytes = 0;
-				uint8_t rl;
-				while(bytes<bu16)
+				if(bu8==3)
 				{
-					ifs.read((char*)&bu8,1);  bytes++;
-					if(bu8==0xed)
+					addr = 0xc000;
+				}
+				else if(bu8==5)
+				{
+					addr = 0x8000;
+				}
+				else if(bu8==8)
+				{
+					addr = 0x4000;
+				}
+				
+			}
+			//~ if(addr!=0)
+			{
+				if(bu16==0xffff)
+				{
+					for(int k=0;k<0x4000;k++)
+					{
+						ifs.read((char*)&bu8,1); 
+						poke(addr,bu8);addr++;
+					}
+				}
+				else
+				{
+					int bytes = 0;
+					uint8_t rl;
+					while(bytes<bu16)
 					{
 						ifs.read((char*)&bu8,1);  bytes++;
 						if(bu8==0xed)
 						{
-							ifs.read((char*)&rl,1); bytes++;
-							ifs.read((char*)&bu8,1); bytes++;
-							for(int k=0;k<rl;k++)
+							ifs.read((char*)&bu8,1);  bytes++;
+							if(bu8==0xed)
 							{
-								poke(addr,bu8);addr++;
+								ifs.read((char*)&rl,1); bytes++;
+								ifs.read((char*)&bu8,1); bytes++;
+								for(int k=0;k<rl;k++)
+								{
+									poke(addr,bu8);addr++;
+								}
+							}
+							else
+							{
+								poke(addr,0xed);
+								addr++;
+								poke(addr,bu8);
+								addr++;
 							}
 						}
-						else
+						else 
 						{
-							poke(addr,0xed);
-							addr++;
 							poke(addr,bu8);
 							addr++;
 						}
-					}
-					else 
-					{
-						poke(addr,bu8);
-						addr++;
 					}
 				}
 			}
@@ -615,6 +644,7 @@ static test_return_t test_25( const char *filename )
 			{
 				poke(pA[p]+k,page[k]);
 			}
+			PRINT(page);
 			rp++;
 			PRINT("OK");
 		}
@@ -856,6 +886,12 @@ public:
 				z80_run();
 				//~ PRINT(tstates);
 			}
+			ftime = glutGet(GLUT_ELAPSED_TIME)-time_ms;
+			if(tstates>0x10000000)
+			{
+				tstates-=0x10000000;
+				interrupts_enabled_at-=0x10000000;
+			}
 			//~ tstates-=69888u;
 			//~ interrupts_enabled_at-=69888u;
 			if(flag)
@@ -920,12 +956,13 @@ public:
 					}
 				}
 				screen_IRQ = 1;
+				//~ halt = 0;
 				glutPostRedisplay();
 				
 			}
+		overall_images++;
 		}
 		
-		overall_images++;
 		//~ int newTime = glutGet(GLUT_ELAPSED_TIME);
 		if(!bReady)
 		{	
@@ -1110,30 +1147,137 @@ void Render::keyboard(int key,int x,int y,int mod)
 	else if (key==0x30&&(mod&0x02))
 	{
 		keyMatrix.keyUpDown('0',mod&0x10?false:true);
+		if(joystickMode==3)
+		{
+			if(mod&0x10)
+			{
+				kempston|=0x10 ; 
+			}
+			else
+			{
+				kempston&=~0x10 ; 
+			}
+			
+		}
 	}
-	else if (key==0x64&&(mod&0x20))
+	else if (key==0x64&&(mod&0x20)) //left
 	{
-		keyMatrix.keyUpDown('5',mod&0x10?false:true);
+		if(joystickMode==0) //cursor
+		{
+			keyMatrix.keyUpDown('5',mod&0x10?false:true);
+		}
+		else if(joystickMode==1) //sinclair1
+		{
+			keyMatrix.keyUpDown('6',mod&0x10?false:true);
+		}
+		else if(joystickMode==2) //sinclair2
+		{
+			keyMatrix.keyUpDown('1',mod&0x10?false:true);
+		}
+		else if(joystickMode==3) //sinclair2
+		{
+			if(mod&0x10)
+			{
+				kempston|=0x2 ; 
+			}
+			else
+			{
+				kempston&=~0x2 ; 
+			}
+		}
+			
 	}
-	else if (key==0x67&&(mod&0x20))
+	else if (key==0x67&&(mod&0x20)) //down
 	{
-		keyMatrix.keyUpDown('6',mod&0x10?false:true);
+		//~ keyMatrix.keyUpDown('6',mod&0x10?false:true);
+		if(joystickMode==0) //cursor
+		{
+			keyMatrix.keyUpDown('6',mod&0x10?false:true);
+		}
+		else if(joystickMode==1) //sinclair1
+		{
+			keyMatrix.keyUpDown('8',mod&0x10?false:true);
+		}
+		else if(joystickMode==2) //sinclair2
+		{
+			keyMatrix.keyUpDown('3',mod&0x10?false:true);
+		}
+		else if(joystickMode==3) //sinclair2
+		{
+			if(mod&0x10)
+			{
+				kempston|=0x4 ; 
+			}
+			else
+			{
+				kempston&=~0x4 ; 
+			}
+		}
 	}
-	else if (key==0x65&&(mod&0x20))
+	else if (key==0x65&&(mod&0x20)) //up
 	{
-		keyMatrix.keyUpDown('7',mod&0x10?false:true);
+		//~ keyMatrix.keyUpDown('7',mod&0x10?false:true);
+		if(joystickMode==0) //cursor
+		{
+			keyMatrix.keyUpDown('7',mod&0x10?false:true);
+		}
+		else if(joystickMode==1) //sinclair1
+		{
+			keyMatrix.keyUpDown('9',mod&0x10?false:true);
+		}
+		else if(joystickMode==2) //sinclair2
+		{
+			keyMatrix.keyUpDown('4',mod&0x10?false:true);
+		}
+		else if(joystickMode==3) //sinclair2
+		{
+			if(mod&0x10)
+			{
+				kempston|=0x8 ; 
+			}
+			else
+			{
+				kempston&=~0x8 ; 
+			}
+		}
 	}
-	else if (key==0x66&&(mod&0x20))
+	else if (key==0x66&&(mod&0x20)) //right
 	{
-		keyMatrix.keyUpDown('8',mod&0x10?false:true);
+		//~ keyMatrix.keyUpDown('8',mod&0x10?false:true);
+		if(joystickMode==0) //cursor
+		{
+			keyMatrix.keyUpDown('8',mod&0x10?false:true);
+		}
+		else if(joystickMode==1) //sinclair1
+		{
+			keyMatrix.keyUpDown('7',mod&0x10?false:true);
+		}
+		else if(joystickMode==2) //sinclair2
+		{
+			keyMatrix.keyUpDown('2',mod&0x10?false:true);
+		}
+		else if(joystickMode==3) //sinclair2
+		{
+			if(mod&0x10)
+			{
+				kempston|=0x1 ; 
+			}
+			else
+			{
+				kempston&=~0x1 ; 
+			}
+		}
 	}
 	else if(TU>='A'&&TU<='Z'||(TU==' ')||(TU>='0'&&TU<='9'))
 	{
 		keyMatrix.keyUpDown(TU,mod&0x10?false:true);
 	}
-	else 
+	else  if((key==0x1b)&&!(mod&1))  ///esc
 	{
-		
+		if(!mod)
+		{
+			joystickMode = (joystickMode+1)%4;
+		}
 	}
 	switch(key)
 	{
@@ -1152,13 +1296,12 @@ void Render::keyboard(int key,int x,int y,int mod)
 	return ;	
 }
 #define TEXT_TYPE GLUT_BITMAP_TIMES_ROMAN_24
-
 void Render::paintModel() 
 {
 
 	ostringstream ss;
 	ss.setf(ios::left);
-	ss<<"Images "<<setw(5)<<overall_images<<setw(5)<<"fps "<<std::setprecision(1)<<std::fixed<<fps<<setw(5)<<" "<<std::setprecision(3)<<imageW<<"x"<<imageH<<" ";
+	ss<<"Images "<<setw(5)<<overall_images<<setw(5)<<"fps "<<std::setprecision(1)<<std::fixed<<fps<<setw(5)<<" "<<std::setprecision(3)<<imageW<<"x"<<imageH<<" "<<ftime<<" ";
 	if(status.length())
 	{
 		ss<<status;
@@ -1255,6 +1398,9 @@ void Render::paintModel()
 		char sbuff[0x30];
 		float fpos = 0.9;
 		float fdelta = -1.8/16;
+		char* joystickModeC[] = {"cursor","sinclair1","sinclair2","kempston"};
+		if(bDebugMode)
+		{
 		sprintf(sbuff,"IFF1 %x",IFF1);	glColor3f(1.0f, 1.0f, 0.0f);glRasterPos2f(-0.91,aspect*fpos);for (unsigned int iChar = 0; iChar < strlen(sbuff); ++iChar) glutBitmapCharacter(TEXT_TYPE, sbuff[iChar]); fpos+=fdelta;
 		sprintf(sbuff,"IFF2 %x",IFF2);   	glColor3f(1.0f, 1.0f, 0.0f);glRasterPos2f(-0.91,aspect*fpos);for (unsigned int iChar = 0; iChar < strlen(sbuff); ++iChar) glutBitmapCharacter(TEXT_TYPE, sbuff[iChar]); fpos+=fdelta; 
 		sprintf(sbuff,"halt %x",halt);    	glColor3f(1.0f, 1.0f, 0.0f);glRasterPos2f(-0.91,aspect*fpos);for (unsigned int iChar = 0; iChar < strlen(sbuff); ++iChar) glutBitmapCharacter(TEXT_TYPE, sbuff[iChar]); fpos+=fdelta;
@@ -1264,6 +1410,8 @@ void Render::paintModel()
 		sprintf(sbuff,"IY %x",IY);   	glColor3f(1.0f, 1.0f, 0.0f);glRasterPos2f(-0.91,aspect*fpos);for (unsigned int iChar = 0; iChar < strlen(sbuff); ++iChar) glutBitmapCharacter(TEXT_TYPE, sbuff[iChar]); fpos+=fdelta;
 		sprintf(sbuff,"interrupts_enabled_at %d",interrupts_enabled_at);   	glColor3f(1.0f, 1.0f, 0.0f);glRasterPos2f(-0.91,aspect*fpos);for (unsigned int iChar = 0; iChar < strlen(sbuff); ++iChar) glutBitmapCharacter(TEXT_TYPE, sbuff[iChar]); fpos+=fdelta;
 		sprintf(sbuff,"tstates %d",tstates);   	glColor3f(1.0f, 1.0f, 0.0f);glRasterPos2f(-0.91,aspect*fpos);for (unsigned int iChar = 0; iChar < strlen(sbuff); ++iChar) glutBitmapCharacter(TEXT_TYPE, sbuff[iChar]); fpos+=fdelta;
+		}
+		sprintf(sbuff,"Joy %s",joystickModeC[joystickMode]);glColor3f(1.0f, 1.0f, 0.0f);glRasterPos2f(-0.91,aspect*fpos);for (unsigned int iChar = 0; iChar < strlen(sbuff); ++iChar) glutBitmapCharacter(TEXT_TYPE, sbuff[iChar]); fpos+=fdelta;
 		
 		glColor3f(0.0f, 0.0f, 0.0f);
 		glRasterPos2f(-0.91,aspect*-0.91);
@@ -1421,9 +1569,9 @@ void Render::runD()
 
 				void libspectrum_mem_set_vtable( libspectrum_mem_vtable_t *table )
 				//~ */
-				if(!my80_read(inputFileName.c_str() ) )
+				if(my80_read(inputFileName.c_str() ) )
 				{
-					PRINT(test_25(inputFileName.c_str()));
+					//~ PRINT(test_25(inputFileName.c_str()));
 				}
 			}
 			else if (inputFileNameS!=string(""))

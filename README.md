@@ -16,15 +16,12 @@ gorien for stm32f4 (last version very simular to fuse,same macros)
 http://forum.easyelectronics.ru/viewtopic.php?f=35&t=16592&start=150
 
 most tricks from here, but simplified & reduced and added partially instruction decoding: 
-fuse
-http://fuse-emulator.sourceforge.net/
+fuse (http://fuse-emulator.sourceforge.net/)
 
 baseline display routines from: 
-fagcinsk
-https://github.com/fagcinsk/stm-ILI9341-spi/
+fagcinsk (https://github.com/fagcinsk/stm-ILI9341-spi/)
 
 touch from here,completely rewritten calibration by LS 6 points: 
-martnak
-https://github.com/martnak/STM32-ILI9341
+martnak (https://github.com/martnak/STM32-ILI9341)
 
-stm32 libraries from stm :)
+stm32 libraries from st (http://www.st.com/content/st_com/en.html)

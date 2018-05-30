@@ -4,22 +4,22 @@ into this table in the form r12, where r is the 3rd bit of the
 result, 1 is the 3rd bit of the 1st argument and 2 is the
 third bit of the 2nd argument; the tables differ for add and subtract
 operations */
-static const u8 halfcarry_add_table[] =
+u8 halfcarry_add_table[] =
 { 
 	0, FLAG_H, FLAG_H, FLAG_H, 0, 0, 0, FLAG_H 
 };
-static const u8 halfcarry_sub_table[] =
+u8 halfcarry_sub_table[] =
 { 
 	0, 0, FLAG_H, 0, FLAG_H, 0, FLAG_H, FLAG_H 
 };
 
 /* Similarly, overflow can be determined by looking at the 7th bits; again
 the hash into this table is r12 */
-static const u8 overflow_add_table[] = 
+ u8 overflow_add_table[] = 
 {
 	0, 0, 0, FLAG_V, FLAG_V, 0, 0, 0 
 };
-static const u8 overflow_sub_table[] = 
+ u8 overflow_sub_table[] = 
 {
 	0, FLAG_V, 0, 0, 0, 0, FLAG_V, 0 
 };
@@ -28,7 +28,7 @@ static const u8 overflow_sub_table[] =
 
 #if 1
 /* The S, Z, 5 and 3 bits of the index */
-static const u8 sz53_table[0x100] = 
+const u8 sz53_table[0x100] = 
 {
 	 0x40,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 	,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08
@@ -66,7 +66,7 @@ static const u8 sz53_table[0x100] =
 };
 
 /* OR the above two tables together */
-static const u8 sz53p_table[0x100] = 
+const u8 sz53p_table[0x100] = 
 {
 	 0x44,0x00,0x00,0x04,0x00,0x04,0x04,0x00
 	,0x08,0x0c,0x0c,0x08,0x0c,0x08,0x08,0x0c

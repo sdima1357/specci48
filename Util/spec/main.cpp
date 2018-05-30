@@ -883,7 +883,7 @@ public:
 			int stopt = tstates+69888u;
 			for(;tstates<stopt;)
 			{
-				z80_run();
+				z80_run(2048);
 				//~ PRINT(tstates);
 			}
 			ftime = glutGet(GLUT_ELAPSED_TIME)-time_ms;

@@ -273,7 +273,7 @@ run_test( FILE *f )
   while(tstates<event_next_event)
   {
 	//~ printf("PC=%d,Last=%d\n",PC,lastAddr);
-	z80_run();
+	z80_run(1);
 	printf("PC=%d,Last=%d ts=%d\n",PC,lastAddr,tstates);
   }
 	

@@ -82,7 +82,7 @@ tstates = 0;
 //~ u16 i;
 #define EMPTY ;
 
-void z80_run(void)
+void z80_run(int num_reps)
 {
 
 union
@@ -131,7 +131,7 @@ int kk;
 	}
 	//~ const int rtable [] = {1,0,3,2,5,4,21,7};	//
 
-for(kk=0;kk<2048;kk++)
+for(kk=0;kk<num_reps;kk++)
 {
 u16 m_cycle = 0;
 	opcode=NEXT_BYTE;

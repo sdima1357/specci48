@@ -877,7 +877,7 @@ extern ZINTRFlags IFlags;
 }
 
 void z80_reset(int hard);
-void z80_run(void);
+void z80_run(int num_reps);
 
 void poke(u16 addr, u8 value);
 u8 peek(u16 addr);

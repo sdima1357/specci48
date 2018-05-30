@@ -394,14 +394,14 @@ struct block
 #define BlocksR  Blocks
 #define NUM_LINES (112)
 #else
-#define NUM_LINES (132)
+#define NUM_LINES (132-8)
 #endif
 
 struct cacheLinePool
 {
 	uint8_t    cacheLine[64];
+	int32_t    lastTimeTick;
 	uint16_t  currentBlockNumber;
-	int32_t  lastTimeTick;
 }  Lines[NUM_LINES];
 
 //~ uint32_t  timeTick = 0;
@@ -477,18 +477,17 @@ ENOU:
 	}
 }
 
-struct cacheLinePool*  writeCache64bIfmodifiedThenRead(int blockNumber)
+struct cacheLinePool*  writeCache64bIfmodifiedThenRead(uint16_t blockNumber)
 {
 	// find oldest line
-	int   oldestLineIndex = 0;
-	int32_t timediff       = 0;
+	int32_t  oldestLineIndex = 0;
+	int32_t  oldest_time    = Lines[0].lastTimeTick;
 	int k;
-	for(k=0;k<NUM_LINES;k++)
+	for(k=1;k<NUM_LINES;k++)
 	{
-		int32_t diffval = tstates-Lines[k].lastTimeTick;
-		if(diffval>timediff)
+		if(Lines[k].lastTimeTick<oldest_time)
 		{
-			timediff = diffval;
+			oldest_time = Lines[k].lastTimeTick;
 			oldestLineIndex = k;
 		}
 	}
@@ -497,9 +496,7 @@ struct cacheLinePool*  writeCache64bIfmodifiedThenRead(int blockNumber)
         // save line content if modified 	
 	if(Blocks[line->currentBlockNumber].flag_line&MODIFIED)
 	{
-		uint16_t X = (BlocksR[line->currentBlockNumber].X)*4;
-		uint16_t Y = (BlocksR[line->currentBlockNumber].Y)*4;
-		LCD_Write64bytes(X,Y,line->cacheLine);
+		LCD_Write64bytes((BlocksR[line->currentBlockNumber].X)*4,(BlocksR[line->currentBlockNumber].Y)*4,line->cacheLine);
 #ifdef CHECK_SUMM		
 		missSaveMemory++;
 #endif		
@@ -508,10 +505,8 @@ struct cacheLinePool*  writeCache64bIfmodifiedThenRead(int blockNumber)
 	Blocks[line->currentBlockNumber].flag_line = 0; 
 	
 // read	
-	uint16_t X = (BlocksR[blockNumber].X)*4;
-	uint16_t Y = (BlocksR[blockNumber].Y)*4;
 	
-	LCD_Read64bytes(X,Y,line->cacheLine);
+	LCD_Read64bytes((BlocksR[blockNumber].X)*4,(BlocksR[blockNumber].Y)*4,line->cacheLine);
 #ifdef CHECK_SUMM	
 	missReadMemory++;
 #endif	
@@ -589,8 +584,10 @@ void wait_any_key()
 }
 void memory_test()
 {
+	int32_t start_time = HAL_GetTick();
   {
 	  //memory test
+	  
 	  int block;
 	  int k;
 	  uint8_t bts[64];
@@ -629,6 +626,8 @@ void memory_test()
 	  
 	  LCD_Draw_Text(flag?"OK":"Memory Error",80,130, GREEN, 1, BLACK);
 	  LCD_Draw_Text(printNum16(blockErr),80,140, GREEN, 1, BLACK);
+	  LCD_Draw_Text(printNum(HAL_GetTick()-start_time),80,150, GREEN, 1, BLACK);
+	  
 #ifdef CHECK_SUMM	  
 	  LCD_Draw_Text(printNum16(checkerror),80,150, BLACK, 1,GREEN);
 #endif	  
@@ -642,7 +641,9 @@ void memory_test()
 		HAL_Delay(1000);
 		wait_any_key();
 	  }
+	  start_time = HAL_GetTick();
 	  for(block=0;block<BLOCKS;block++)
+	  
 	  {
 		  for(k=0;k<64;k++)
 		  {
@@ -652,9 +653,15 @@ void memory_test()
 		  int Y = BlocksR[block].Y*4;
 		  LCD_Write64bytes(X,Y,bts);
 	  }
+	  LCD_Draw_Text(printNum(HAL_GetTick()-start_time),80,160, GREEN, 1, BLACK);
+	  {
+		HAL_Delay(1000);
+		wait_any_key();
+	  }
 	  
   }
   //~ 
+  start_time = HAL_GetTick();
   int adr ;
   for( adr=0x4000;adr<=0xffff;adr++)
   {
@@ -681,8 +688,9 @@ void memory_test()
 	  poke(adr,0);
   }
   //~ LCD_Draw_Text(printNum16(flag),10,10, GREEN, 2, BLACK);
-  LCD_Draw_Text(flag?"OK":"Memory Error",80,160, GREEN, 1, BLACK);
-  LCD_Draw_Text(printNum16(stop),80,170, GREEN, 1, BLACK);
+  LCD_Draw_Text(flag?"OK":"Memory Error",80,170, GREEN, 1, BLACK);
+  LCD_Draw_Text(printNum16(stop),80,180, GREEN, 1, BLACK);
+  LCD_Draw_Text(printNum(HAL_GetTick()-start_time),80,190, GREEN, 1, BLACK);
 #ifdef CHECK_SUMM  
   LCD_Draw_Text(printNum16(checkerror),80,180, BLACK, 1,GREEN);
 #endif  
@@ -750,6 +758,59 @@ int readDirIntoList()
 
 int baseline = 0;  
 int selection = 0;  
+
+struct CBuff
+{
+	u8 bb[0x40];
+	int head;
+	int tail;
+}SB;
+
+void SB_init()
+{
+	SB.head = 0;
+	SB.tail    = 0;
+}
+void SB_put(u8 bt)
+{
+	SB.bb[SB.head] = bt;
+	SB.head++;
+	SB.head&=0x3f;
+}
+u8 SB_get()
+{
+	u8 res = SB.bb[SB.tail];
+	SB.tail++;
+	SB.tail&=0x3f;
+	return res;
+}
+int SB_size()
+{
+	return (SB.head-SB.tail)&0x3f; 
+}
+FRESULT f_read_b(FIL* fp, void* buff, UINT btr, UINT* br)
+{
+	int k;
+	if(SB_size()<btr)
+	{
+		UINT bytes = 0;
+		u8 bbt[0x20];
+		f_read(fp,bbt,0x20,&bytes);
+		for(k=0;k<bytes;k++)
+		{
+			SB_put(bbt[k]);
+		}
+	}
+        u8 *pnt =buff;
+	int rb = 0;
+	for(k=0;k<btr&&SB_size();k++)
+	{
+		pnt[k] = SB_get();
+		rb++;
+	}
+	*br = rb;
+	return FR_OK;
+}
 
 int readCard()
 {
@@ -854,6 +915,7 @@ int readCard()
 	if(f_open(&MyFile,Lines[selNum].cacheLine, FA_READ)==FR_OK)
 	{
 		clearFullScreen();
+		SB_init();
 		uint8_t bu8;
 		uint16_t bu16;
 		int version = 1; 
@@ -862,35 +924,35 @@ int readCard()
 		tstates = 11200;
 		interrupts_enabled_at = 0;
 		UINT BytesRead;
-		f_read(&MyFile,&bu8,1,&BytesRead); A = bu8;
-		f_read(&MyFile,&bu8,1,&BytesRead); F = bu8;
-		f_read(&MyFile,&BC,2,&BytesRead); 
-		f_read(&MyFile,&HL,2,&BytesRead); 
-		f_read(&MyFile,&PC,2,&BytesRead); 
+		f_read_b(&MyFile,&bu8,1,&BytesRead); A = bu8;
+		f_read_b(&MyFile,&bu8,1,&BytesRead); F = bu8;
+		f_read_b(&MyFile,&BC,2,&BytesRead); 
+		f_read_b(&MyFile,&HL,2,&BytesRead); 
+		f_read_b(&MyFile,&PC,2,&BytesRead); 
 		if(PC==0)
 		{
 			version = 2; 
 		}
-		f_read(&MyFile,&SP,2,&BytesRead); 
-		f_read(&MyFile,&bu8,1,&BytesRead); I = bu8;
-		f_read(&MyFile,&bu8,1,&BytesRead); R = bu8;
-		f_read(&MyFile,&bu8,1,&BytesRead); R|=(bu8&1)<<7;
+		f_read_b(&MyFile,&SP,2,&BytesRead); 
+		f_read_b(&MyFile,&bu8,1,&BytesRead); I = bu8;
+		f_read_b(&MyFile,&bu8,1,&BytesRead); R = bu8;
+		f_read_b(&MyFile,&bu8,1,&BytesRead); R|=(bu8&1)<<7;
 		R7=R;
 		if(bu8&(1<<5))
 		{
 			isCompressed = 1;
 		}
-		f_read(&MyFile,&DE,2,&BytesRead); 
-		f_read(&MyFile,&BC_,2,&BytesRead); 
-		f_read(&MyFile,&DE_,2,&BytesRead); 
-		f_read(&MyFile,&HL_,2,&BytesRead); 
-		f_read(&MyFile,&bu8,1,&BytesRead); A_ = bu8;
-		f_read(&MyFile,&bu8,1,&BytesRead); F_ = bu8;
-		f_read(&MyFile,&IY,2,&BytesRead); 
-		f_read(&MyFile,&IX,2,&BytesRead); 
-		f_read(&MyFile,&bu8,1,&BytesRead); IFF1 = bu8;
-		f_read(&MyFile,&bu8,1,&BytesRead); IFF2 = bu8;
-		f_read(&MyFile,&bu8,1,&BytesRead); IM   = bu8&3;
+		f_read_b(&MyFile,&DE,2,&BytesRead); 
+		f_read_b(&MyFile,&BC_,2,&BytesRead); 
+		f_read_b(&MyFile,&DE_,2,&BytesRead); 
+		f_read_b(&MyFile,&HL_,2,&BytesRead); 
+		f_read_b(&MyFile,&bu8,1,&BytesRead); A_ = bu8;
+		f_read_b(&MyFile,&bu8,1,&BytesRead); F_ = bu8;
+		f_read_b(&MyFile,&IY,2,&BytesRead); 
+		f_read_b(&MyFile,&IX,2,&BytesRead); 
+		f_read_b(&MyFile,&bu8,1,&BytesRead); IFF1 = bu8;
+		f_read_b(&MyFile,&bu8,1,&BytesRead); IFF2 = bu8;
+		f_read_b(&MyFile,&bu8,1,&BytesRead); IM   = bu8&3;
 		halt = 0;
 		if(version==1)
 		{
@@ -902,7 +964,7 @@ int readCard()
 				int k;
 				for(k=0;k<0x10000-0x4000;k++)
 				{
-					f_read(&MyFile,&bu8,1,&BytesRead);
+					f_read_b(&MyFile,&bu8,1,&BytesRead);
 					poke(addr,bu8);addr++;
 				}
 			}
@@ -910,16 +972,16 @@ int readCard()
 			{
 				while(addr<0x10000)
 				{
-					f_read(&MyFile,&bu8,1,&BytesRead);
+					f_read_b(&MyFile,&bu8,1,&BytesRead);
 					if(BytesRead)
 					{
 						if(bu8==0xed)
 						{
-							f_read(&MyFile,&bu8,1,&BytesRead);
+							f_read_b(&MyFile,&bu8,1,&BytesRead);
 							if(bu8==0xed)
 							{
-								f_read(&MyFile,&rl,1,&BytesRead);
-								f_read(&MyFile,&bu8,1,&BytesRead);
+								f_read_b(&MyFile,&rl,1,&BytesRead);
+								f_read_b(&MyFile,&bu8,1,&BytesRead);
 								int k;
 								for(k=0;k<rl;k++)
 								{
@@ -955,7 +1017,7 @@ int readCard()
 		}
 		else
 		{
-			f_read(&MyFile,&bu16,2,&BytesRead); 
+			f_read_b(&MyFile,&bu16,2,&BytesRead); 
 			if(bu16 == 23)
 			{
 				version = 2;
@@ -968,43 +1030,43 @@ int readCard()
 			{
 				version = 4;
 			}
-			f_read(&MyFile,&PC,2,&BytesRead); 
+			f_read_b(&MyFile,&PC,2,&BytesRead); 
 			int k;
 			for(k=0;k<5+0x10;k++)
 			{
-				f_read(&MyFile,&bu8,1,&BytesRead);
+				f_read_b(&MyFile,&bu8,1,&BytesRead);
 			}
 			if(version>=3)
 			{
-				f_read(&MyFile,&bu16,2,&BytesRead); 
+				f_read_b(&MyFile,&bu16,2,&BytesRead); 
 				
-				f_read(&MyFile,&bu8,1,&BytesRead);
-				f_read(&MyFile,&bu8,1,&BytesRead);
-				f_read(&MyFile,&bu8,1,&BytesRead);
-				f_read(&MyFile,&bu8,1,&BytesRead);
-				f_read(&MyFile,&bu8,1,&BytesRead);
-				f_read(&MyFile,&bu8,1,&BytesRead);
+				f_read_b(&MyFile,&bu8,1,&BytesRead);
+				f_read_b(&MyFile,&bu8,1,&BytesRead);
+				f_read_b(&MyFile,&bu8,1,&BytesRead);
+				f_read_b(&MyFile,&bu8,1,&BytesRead);
+				f_read_b(&MyFile,&bu8,1,&BytesRead);
+				f_read_b(&MyFile,&bu8,1,&BytesRead);
 				for(k=0;k<10;k++)
 				{
-					f_read(&MyFile,&bu8,1,&BytesRead);
+					f_read_b(&MyFile,&bu8,1,&BytesRead);
 				}
 				for(k=0;k<10;k++)
 				{
-					f_read(&MyFile,&bu8,1,&BytesRead);
+					f_read_b(&MyFile,&bu8,1,&BytesRead);
 				}
-				f_read(&MyFile,&bu8,1,&BytesRead);
-				f_read(&MyFile,&bu8,1,&BytesRead);
-				f_read(&MyFile,&bu8,1,&BytesRead);
+				f_read_b(&MyFile,&bu8,1,&BytesRead);
+				f_read_b(&MyFile,&bu8,1,&BytesRead);
+				f_read_b(&MyFile,&bu8,1,&BytesRead);
 				if(version==4)
 				{
-					f_read(&MyFile,&bu8,1,&BytesRead);
+					f_read_b(&MyFile,&bu8,1,&BytesRead);
 				}
 			}
 			int p;
 			for(p=0;p<3;p++)
 			{
-				f_read(&MyFile,&bu16,2,&BytesRead); 
-				f_read(&MyFile,&bu8,1,&BytesRead); 
+				f_read_b(&MyFile,&bu16,2,&BytesRead); 
+				f_read_b(&MyFile,&bu8,1,&BytesRead); 
 				//~ ifs.read((char*)&bu16,2);  cout<<hex<<"size="<<int(bu16)<<"\n";  
 				//~ ifs.read((char*)&bu8,1);  cout<<hex<<"page="<<int(bu8)<<"\n";  
 				int addr = 0x4000;
@@ -1025,7 +1087,7 @@ int readCard()
 					for(k=0;k<0x4000;k++)
 					{
 						//~ ifs.read((char*)&bu8,1); 
-						f_read(&MyFile,&bu8,1,&BytesRead); 
+						f_read_b(&MyFile,&bu8,1,&BytesRead); 
 						poke(addr,bu8);addr++;
 					}
 				}
@@ -1035,14 +1097,14 @@ int readCard()
 					uint8_t rl;
 					while(bytes<bu16)
 					{
-						f_read(&MyFile,&bu8,1,&BytesRead);   bytes++;
+						f_read_b(&MyFile,&bu8,1,&BytesRead);   bytes++;
 						if(bu8==0xed)
 						{
-							f_read(&MyFile,&bu8,1,&BytesRead);   bytes++;
+							f_read_b(&MyFile,&bu8,1,&BytesRead);   bytes++;
 							if(bu8==0xed)
 							{
-								f_read(&MyFile,&rl,1,&BytesRead); ; bytes++;
-								f_read(&MyFile,&bu8,1,&BytesRead);  bytes++;
+								f_read_b(&MyFile,&rl,1,&BytesRead); ; bytes++;
+								f_read_b(&MyFile,&bu8,1,&BytesRead);  bytes++;
 								for(k=0;k<rl;k++)
 								{
 									poke(addr,bu8);addr++;
@@ -1132,7 +1194,7 @@ int readCard()
 	  {
 	    for (;;)
 	    {
-	      res = f_readdir(&MyDirectory, &MyFileInfo);
+	      res = f_read_bdir(&MyDirectory, &MyFileInfo);
 	      if(res != FR_OK || MyFileInfo.fname[0] == 0) 
 		break;
 	      //~ if(numFiles<LCD_getHeight()/CHAR_HEIGHT-2)
@@ -1162,7 +1224,7 @@ int readCard()
 					     //~ u8 bt[32*3];
 					     for(y=0;y<24;y++)
 					     {
-						 f_read(&MyFile,&bt[0],32*3,&BytesRead);
+						 f_read_b(&MyFile,&bt[0],32*3,&BytesRead);
 						 //  copy to screen  position  
 						 for(k=0;k<32;k++)
 						{		
@@ -1179,10 +1241,10 @@ int readCard()
 						      //~ f_lseek(&MyFile,32*3*24);
 						      for(y=0;y<24;y++)
 						      {
-							      f_read(&MyFile,&bt[0],32*3,&BytesRead);
+							      f_read_b(&MyFile,&bt[0],32*3,&BytesRead);
 						      }
 						      OldZReg oldReg;
-						      f_read(&MyFile,&oldReg,sizeof(oldReg),&BytesRead);
+						      f_read_b(&MyFile,&oldReg,sizeof(oldReg),&BytesRead);
 						      A =  	oldReg.r[7];
 						      F =  	oldReg.r[6];
 						      BC =  oldReg.rp[0];
@@ -1197,19 +1259,19 @@ int readCard()
 						      R = oldReg.r[19];
 						      R7 = oldReg.r[20];
 						      
-						      f_read(&MyFile,&reg_,sizeof(reg_),&BytesRead);
+						      f_read_b(&MyFile,&reg_,sizeof(reg_),&BytesRead);
 						      u8 tmp;
-						      f_read(&MyFile,&tmp,sizeof(tmp),&BytesRead);
+						      f_read_b(&MyFile,&tmp,sizeof(tmp),&BytesRead);
 						      IM = tmp;
-						      f_read(&MyFile,&tmp,sizeof(tmp),&BytesRead);
+						      f_read_b(&MyFile,&tmp,sizeof(tmp),&BytesRead);
 						      IFF1=tmp;
-						      f_read(&MyFile,&tmp,sizeof(tmp),&BytesRead);
+						      f_read_b(&MyFile,&tmp,sizeof(tmp),&BytesRead);
 						      IFF2=tmp;
-						      f_read(&MyFile,&tmp,sizeof(tmp),&BytesRead);
+						      f_read_b(&MyFile,&tmp,sizeof(tmp),&BytesRead);
 						      halt = tmp;
 						      for( y=0x4000;y<=0xffff;y+=0x80)
 						      {		
-								f_read(&MyFile,&bt[0],0x80,&BytesRead);
+								f_read_b(&MyFile,&bt[0],0x80,&BytesRead);
 								 for(k=0;k<0x80;k++)
 								{		
 									poke(y+k,bt[k]);
@@ -1272,7 +1334,7 @@ void minit()
   
 	initBlocksAndLines();
   
-	//~ memory_test();	
+	memory_test();	
 	z80_reset(1);
 #ifdef CHECK_SUMM	
 	missSaveMemory = 0;
@@ -1359,7 +1421,7 @@ void mloop()
 	//~ char rb[0x10];
 	//~ sprintf(rb,"%03x",opcode);
 	//~ LCD_Draw_Text("E",80,60, BLACK, 1,GREEN);
-	if(HAL_GetTick()-tickperv>=40)
+	if(HAL_GetTick()-tickperv>=50)
 	{
 				tickperv = HAL_GetTick();
 		

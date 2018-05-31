@@ -3,11 +3,11 @@ Project name: specci48
 Description:   Sinclair ZX spectrum48 emulator on stm32f103c8t6 & ILI9341 SPI display
   
 Installation on ubuntu:
->git clone https://github.com/sdima1357/specci48
->cd specci48
->make 
-.. connect hardware
->./load.sh
+* git clone https://github.com/sdima1357/specci48
+* cd specci48
+* make 
+* .. connect hardware
+* ./load.sh
 
 Status:
 

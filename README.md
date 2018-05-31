@@ -22,7 +22,7 @@ On ili9341 board You must close(short) jumper J1 to 3.3v .Check board documentat
 Touch,Display and SD card use common (3 wire CLK,MISO,MOSI) SPI1 interface. Chip selects are different.
 
 Credits:
-1. Clive Marles Sinclair
+1. Sir Clive Marles Sinclair
 1. started from here: 
 gorien for stm32f4 (last version very simular to fuse,same macros)
 http://forum.easyelectronics.ru/viewtopic.php?f=35&t=16592&start=150
